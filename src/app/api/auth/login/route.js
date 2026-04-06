@@ -1,33 +1,24 @@
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-
-const SESSION_COOKIE = 'horas_extras_session';
-const SESSION_VALUE = 'authenticated_admin_2026';
+import { createClient } from '../../../../utils/supabase/server';
 
 export async function POST(request) {
   try {
     const { email, password } = await request.json();
+    const supabase = await createClient();
 
-    const validEmail = process.env.ADMIN_EMAIL;
-    const validPassword = process.env.ADMIN_PASSWORD;
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-    if (email === validEmail && password === validPassword) {
-      const cookieStore = await cookies();
-      cookieStore.set(SESSION_COOKIE, SESSION_VALUE, {
-        httpOnly: true,
-        secure: false,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 30, // 30 dias
-      });
-
-      return NextResponse.json({ success: true });
+    if (error) {
+      return NextResponse.json(
+        { success: false, error: 'Email ou senha inválidos.' },
+        { status: 401 }
+      );
     }
 
-    return NextResponse.json(
-      { success: false, error: 'Email ou senha inválidos.' },
-      { status: 401 }
-    );
+    return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(
       { success: false, error: 'Erro interno do servidor.' },
