@@ -67,6 +67,19 @@ export default function Dashboard() {
 
   useEffect(() => { fetchFuncionarios(); }, [fetchFuncionarios]);
 
+  // ====== GLOBAL SHORTCURTS ======
+  useEffect(() => {
+    const handleEsc = (event) => {
+      if (event.key === 'Escape') {
+        setShowEmployeeModal(false);
+        setShowMovModal(false);
+        setShowDetailModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
+
   // ====== EMPLOYEE CRUD ======
   const openNewEmployee = () => {
     setEditingEmployee(null);
@@ -442,7 +455,7 @@ export default function Dashboard() {
 
       {/* EMPLOYEE MODAL */}
       {showEmployeeModal && (
-        <div className="modal-overlay" onClick={() => setShowEmployeeModal(false)}>
+        <div className="modal-overlay">
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">{editingEmployee ? 'Editar Funcionário' : 'Novo Funcionário'}</h2>
@@ -497,7 +510,7 @@ export default function Dashboard() {
 
       {/* MOVEMENT MODAL */}
       {showMovModal && (
-        <div className="modal-overlay" onClick={() => setShowMovModal(false)}>
+        <div className="modal-overlay">
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">
