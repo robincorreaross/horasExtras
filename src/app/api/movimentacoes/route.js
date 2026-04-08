@@ -18,7 +18,7 @@ export async function GET(request) {
       const [year, month] = mes.split('-');
       const startDate = `${year}-${month}-01`;
       const endDate = new Date(parseInt(year), parseInt(month), 0).toISOString().split('T')[0];
-      
+
       movimentacoes = await sql`
         SELECT * FROM movimentacoes_he
         WHERE funcionario_id = ${funcionarioId}
@@ -47,20 +47,25 @@ export async function POST(request) {
     const body = await request.json();
     const { funcionario_id, data_registro, tipo, horas } = body;
 
-    // Definir o valor de horas_debito_credito com base no tipo
+    // 1. Validação explícita do funcionario_id
+    if (!funcionario_id) {
+      return NextResponse.json({ error: 'funcionario_id é obrigatório' }, { status: 400 });
+    }
+
     let horasDebitoCredito;
     switch (tipo) {
       case 'extra_50':
-        horasDebitoCredito = Math.abs(parseFloat(horas));
-        break;
       case 'extra_100':
+        if (!horas || isNaN(horas)) return NextResponse.json({ error: 'As horas são obrigatórias e devem ser numéricas' }, { status: 400 });
         horasDebitoCredito = Math.abs(parseFloat(horas));
         break;
       case 'domingo_menos_1':
-        horasDebitoCredito = -4; // Sempre -4h
+        horasDebitoCredito = -4;
         break;
       case 'falta':
-        horasDebitoCredito = -Math.abs(parseFloat(horas)); // Sempre negativo
+        // 2. Prevenir que horas vazias se tornem NaN
+        if (!horas || isNaN(horas)) return NextResponse.json({ error: 'A quantidade de horas para a falta é obrigatória' }, { status: 400 });
+        horasDebitoCredito = -Math.abs(parseFloat(horas));
         break;
       default:
         return NextResponse.json({ error: 'Tipo inválido' }, { status: 400 });

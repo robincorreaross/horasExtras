@@ -155,15 +155,15 @@ export default function Dashboard() {
 
   const saveMov = async () => {
     try {
+      let res; // Criamos a variável fora dos blocos para checar depois
       if (editingMov) {
-        await fetch(`/api/movimentacoes/${editingMov.id}`, {
+        res = await fetch(`/api/movimentacoes/${editingMov.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...movForm }),
         });
-        addToast('Movimentação atualizada!', 'success');
       } else {
-        await fetch('/api/movimentacoes', {
+        res = await fetch('/api/movimentacoes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -173,15 +173,24 @@ export default function Dashboard() {
             horas: movForm.horas,
           }),
         });
-        addToast('Movimentação registrada!', 'success');
       }
+
+      const data = await res.json();
+
+      // Interrompe o processo e exibe o erro retornado pela API sem fechar o modal
+      if (!res.ok) {
+        addToast(data.error || 'Erro ao salvar movimentação', 'error');
+        return;
+      }
+
+      addToast(editingMov ? 'Movimentação atualizada!' : 'Movimentação registrada!', 'success');
       setShowMovModal(false);
       fetchFuncionarios();
       if (detailEmployee) {
         loadEmployeeDetail(detailEmployee.id);
       }
     } catch (err) {
-      addToast('Erro ao salvar movimentação', 'error');
+      addToast('Erro de comunicação ao salvar movimentação', 'error');
     }
   };
 
@@ -299,7 +308,7 @@ export default function Dashboard() {
         <nav className="navbar">
           <div className="navbar-content">
             <span className="logo">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
               TimeFlow
             </span>
           </div>
@@ -317,7 +326,7 @@ export default function Dashboard() {
       <nav className="navbar">
         <div className="navbar-content">
           <span className="logo">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
             TimeFlow
           </span>
           <div className="nav-actions">
@@ -399,7 +408,7 @@ export default function Dashboard() {
         <div className="card">
           {funcionarios.length === 0 ? (
             <div className="empty-state">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
               <p>Nenhum funcionário cadastrado ainda.</p>
               <button className="btn btn-primary" style={{ marginTop: '1rem' }} onClick={openNewEmployee}>+ Cadastrar Primeiro</button>
             </div>
