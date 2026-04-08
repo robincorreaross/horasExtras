@@ -18,12 +18,20 @@ const TIPO_LABELS = {
 export default function Dashboard() {
   const router = useRouter();
   const now = new Date();
-  // Mês atual como padrão
-  const defaultMonth = now.getMonth();
-  const defaultYear = now.getFullYear();
+
+  // Mês anterior como padrão
+  let defaultMonth = now.getMonth() - 1;
+  let defaultYear = now.getFullYear();
+
+  // Tratamento para Janeiro (mês 0): volta para Dezembro (11) do ano passado
+  if (defaultMonth < 0) {
+    defaultMonth = 11;
+    defaultYear -= 1;
+  }
 
   const [refMonth, setRefMonth] = useState(defaultMonth);
   const [refYear, setRefYear] = useState(defaultYear);
+
   const [funcionarios, setFuncionarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toasts, setToasts] = useState([]);
