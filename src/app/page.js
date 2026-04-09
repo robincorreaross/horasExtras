@@ -306,9 +306,20 @@ export default function Dashboard() {
   };
 
   // ====== STATS ======
-  const totalAtivos = funcionarios.filter(f => f.ativo).length;
-  const totalInativos = funcionarios.filter(f => !f.ativo).length;
-  const totalDevedores = funcionarios.filter(f => parseFloat(f.saldo_atual) < 0).length;
+  const totalFuncionarios = funcionarios.length;
+
+  const totalHorasExtras = funcionarios.reduce((acc, func) => {
+    const saldo = parseFloat(func.saldo_atual);
+    return saldo > 0 ? acc + saldo : acc;
+  }, 0);
+
+  const totalHorasDevendo = funcionarios.reduce((acc, func) => {
+    const saldo = parseFloat(func.saldo_atual);
+    // Usamos Math.abs para somar o valor absoluto da dívida
+    return saldo < 0 ? acc + Math.abs(saldo) : acc;
+  }, 0);
+
+  const totalZerados = funcionarios.filter(func => parseFloat(func.saldo_atual) === 0).length;
 
   if (loading) {
     return (
@@ -396,19 +407,25 @@ export default function Dashboard() {
         <div className="stats-row">
           <div className="stat-card">
             <span className="stat-label">Total Funcionários</span>
-            <span className="stat-value">{funcionarios.length}</span>
+            <span className="stat-value">{totalFuncionarios}</span>
           </div>
           <div className="stat-card">
-            <span className="stat-label">Ativos</span>
-            <span className="stat-value" style={{ color: 'var(--success)' }}>{totalAtivos}</span>
+            <span className="stat-label">Total de Horas Extras</span>
+            <span className="stat-value" style={{ color: 'var(--success)' }}>
+              +{totalHorasExtras}h
+            </span>
           </div>
           <div className="stat-card">
-            <span className="stat-label">Inativos</span>
-            <span className="stat-value" style={{ color: 'var(--text-muted)' }}>{totalInativos}</span>
+            <span className="stat-label">Total de Horas Devendo</span>
+            <span className="stat-value" style={{ color: 'var(--danger)' }}>
+              -{totalHorasDevendo}h
+            </span>
           </div>
           <div className="stat-card">
-            <span className="stat-label">Com Débito</span>
-            <span className="stat-value" style={{ color: 'var(--danger)' }}>{totalDevedores}</span>
+            <span className="stat-label">Funcionários Zerados</span>
+            <span className="stat-value" style={{ color: 'var(--text-muted)' }}>
+              {totalZerados}
+            </span>
           </div>
         </div>
 
