@@ -54,6 +54,38 @@ export default function Dashboard() {
   const [empForm, setEmpForm] = useState({ nome: '', telefone: '', cargo: '', data_admissao: '', saldo_inicial: '', ativo: true });
   const [movForm, setMovForm] = useState({ tipo: 'extra_50', horas: '', data_registro: '' });
 
+  // ====== ORDENAÇÃO ======
+  const [sortConfig, setSortConfig] = useState({ key: 'nome', direction: 'asc' });
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    // Se clicar na mesma coluna, inverte a ordem
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedFuncionarios = [...funcionarios].sort((a, b) => {
+    const { key, direction } = sortConfig;
+    let valA = a[key];
+    let valB = b[key];
+
+    // Se for o saldo atual, precisamos transformar em número para comparar corretamente
+    if (key === 'saldo_atual') {
+      valA = parseFloat(valA || 0);
+      valB = parseFloat(valB || 0);
+    } else {
+      // Se for texto, transformamos em minúsculas para não dar diferença entre 'A' e 'a'
+      valA = valA ? valA.toString().toLowerCase() : '';
+      valB = valB ? valB.toString().toLowerCase() : '';
+    }
+
+    if (valA < valB) return direction === 'asc' ? -1 : 1;
+    if (valA > valB) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   const addToast = (msg, type = 'info') => {
     const id = Date.now() + '-' + Math.random();
     setToasts(prev => [...prev, { id, msg, type }]);
@@ -442,16 +474,22 @@ export default function Dashboard() {
               <table className="styled-table">
                 <thead>
                   <tr>
-                    <th>Nome</th>
-                    <th>Cargo</th>
+                    <th onClick={() => handleSort('nome')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Clique para ordenar">
+                      Nome {sortConfig.key === 'nome' ? (sortConfig.direction === 'asc' ? '🔼' : '🔽') : '↕️'}
+                    </th>
+                    <th onClick={() => handleSort('cargo')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Clique para ordenar">
+                      Cargo {sortConfig.key === 'cargo' ? (sortConfig.direction === 'asc' ? '🔼' : '🔽') : '↕️'}
+                    </th>
                     <th>Telefone</th>
-                    <th>Saldo Atual</th>
+                    <th onClick={() => handleSort('saldo_atual')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Clique para ordenar">
+                      Saldo Atual {sortConfig.key === 'saldo_atual' ? (sortConfig.direction === 'asc' ? '🔼' : '🔽') : '↕️'}
+                    </th>
                     <th>Status</th>
                     <th>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {funcionarios.map(func => {
+                  {sortedFuncionarios.map(func => {
                     const saldo = parseFloat(func.saldo_atual);
                     return (
                       <tr key={func.id}>
