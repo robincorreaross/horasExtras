@@ -40,7 +40,9 @@ export async function POST(request) {
 
 *🌞 Bom dia! ☕✨*
 
-Olá, ${func.nome}! Tudo bem? ⏱️ Passando para lembrar: se tiver *horas extras ou faltas* para repassar referentes a este mês, por favor, envie-me hoje!
+Olá, ${func.nome}! Tudo bem?
+
+⏱️ Passando para lembrar: se tiver *horas extras ou faltas* para repassar referentes a este mês, por favor, envie-me hoje!
 
 *Obrigado!*`;
 
