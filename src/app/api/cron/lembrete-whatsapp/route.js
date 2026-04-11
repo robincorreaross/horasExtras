@@ -36,7 +36,13 @@ export async function POST(request) {
         for (let i = 0; i < funcionarios.length; i++) {
             const func = funcionarios[i];
             // Pode personalizar esta mensagem como preferir
-            const mensagem = `Olá, ${func.nome}! Tudo bem? ⏱️ Passando para lembrar: se tiver *horas extras ou faltas* para repassar referentes a este mês, por favor, envie-me hoje!`;
+            const mensagem = `*🤖 Disparo Automático 🤖*
+
+*🌞 Bom dia! ☕✨*
+
+Olá, ${func.nome}! Tudo bem? ⏱️ Passando para lembrar: se tiver *horas extras ou faltas* para repassar referentes a este mês, por favor, envie-me hoje!
+
+*Obrigado!*`;
 
             try {
                 const sendResult = await sendTextMessage(func.telefone, mensagem);
