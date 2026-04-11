@@ -35,18 +35,21 @@ export async function updateSession(request) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || 
-                     request.nextUrl.pathname.startsWith('/auth') ||
-                     request.nextUrl.pathname.startsWith('/api/auth')
+  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') ||
+    request.nextUrl.pathname.startsWith('/auth') ||
+    request.nextUrl.pathname.startsWith('/api/auth')
+
+  // Nova linha: Identifica se a requisição está indo para a nossa rota do Cron
+  const isCronRoute = request.nextUrl.pathname.startsWith('/api/cron')
 
   // Define route protection logic here
-  // If user is not signed in and the current path is NOT an auth route
-  if (!user && !isAuthRoute) {
+  // Atualizado: Se não tem usuário, NÃO é rota de auth, e NÃO é rota de cron -> Bloqueia
+  if (!user && !isAuthRoute && !isCronRoute) {
     // Check if it's protecting an API route
     if (request.nextUrl.pathname.startsWith('/api')) {
-       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    
+
     // For dashboard and other protected pages, redirect to login
     const url = request.nextUrl.clone()
     url.pathname = '/login'
@@ -55,9 +58,9 @@ export async function updateSession(request) {
 
   // If user is signed in and trying to access /login, redirect to dashboard
   if (user && request.nextUrl.pathname === '/login') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/'
-      return NextResponse.redirect(url)
+    const url = request.nextUrl.clone()
+    url.pathname = '/'
+    return NextResponse.redirect(url)
   }
 
   // Allow accessing the proxy if the proxy does its own authorization? Or is proxy.js an API route?
