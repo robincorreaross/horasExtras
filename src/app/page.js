@@ -54,7 +54,8 @@ export default function Dashboard() {
   const [empForm, setEmpForm] = useState({ nome: '', telefone: '', cargo: '', data_admissao: '', saldo_inicial: '', ativo: true });
   const [movForm, setMovForm] = useState({ tipo: 'extra_50', horas: '', data_registro: '' });
 
-  // ====== ORDENAÇÃO ======
+  // ====== BUSCA E ORDENAÇÃO ======
+  const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'nome', direction: 'asc' });
 
   const handleSort = (key) => {
@@ -66,7 +67,13 @@ export default function Dashboard() {
     setSortConfig({ key, direction });
   };
 
-  const sortedFuncionarios = [...funcionarios].sort((a, b) => {
+  // 1. Filtra pelo termo de busca
+  const filteredFuncionarios = funcionarios.filter(func =>
+    func.nome.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // 2. Ordena a lista filtrada
+  const sortedAndFiltered = [...filteredFuncionarios].sort((a, b) => {
     const { key, direction } = sortConfig;
     let valA = a[key];
     let valB = b[key];
@@ -76,7 +83,7 @@ export default function Dashboard() {
       valA = parseFloat(valA || 0);
       valB = parseFloat(valB || 0);
     } else {
-      // Se for texto, transformamos em minúsculas para não dar diferença entre 'A' e 'a'
+      // Se for texto, transformamos em minúsculas
       valA = valA ? valA.toString().toLowerCase() : '';
       valB = valB ? valB.toString().toLowerCase() : '';
     }
@@ -461,7 +468,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* TABLE */}
+        {/* TABLE E BUSCA */}
         <div className="card">
           {funcionarios.length === 0 ? (
             <div className="empty-state">
@@ -470,57 +477,84 @@ export default function Dashboard() {
               <button className="btn btn-primary" style={{ marginTop: '1rem' }} onClick={openNewEmployee}>+ Cadastrar Primeiro</button>
             </div>
           ) : (
-            <div className="table-wrapper">
-              <table className="styled-table">
-                <thead>
-                  <tr>
-                    <th onClick={() => handleSort('nome')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Clique para ordenar">
-                      Nome {sortConfig.key === 'nome' ? (sortConfig.direction === 'asc' ? '🔼' : '🔽') : '↕️'}
-                    </th>
-                    <th onClick={() => handleSort('cargo')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Clique para ordenar">
-                      Cargo {sortConfig.key === 'cargo' ? (sortConfig.direction === 'asc' ? '🔼' : '🔽') : '↕️'}
-                    </th>
-                    <th>Telefone</th>
-                    <th onClick={() => handleSort('saldo_atual')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Clique para ordenar">
-                      Saldo Atual {sortConfig.key === 'saldo_atual' ? (sortConfig.direction === 'asc' ? '🔼' : '🔽') : '↕️'}
-                    </th>
-                    <th>Status</th>
-                    <th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedFuncionarios.map(func => {
-                    const saldo = parseFloat(func.saldo_atual);
-                    return (
-                      <tr key={func.id}>
-                        <td style={{ fontWeight: 600 }}>{func.nome}</td>
-                        <td style={{ color: 'var(--text-secondary)' }}>{func.cargo}</td>
-                        <td style={{ color: 'var(--text-secondary)', fontFamily: 'monospace', fontSize: '0.8rem' }}>{func.telefone}</td>
-                        <td>
-                          <span className={`badge ${saldo > 0 ? 'badge-success' : saldo < 0 ? 'badge-danger' : 'badge-neutral'}`}>
-                            {saldo > 0 ? '+' : ''}{saldo}h
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`badge ${func.ativo ? 'badge-success' : 'badge-neutral'}`}>
-                            {func.ativo ? 'Ativo' : 'Inativo'}
-                          </span>
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
-                            <button className="btn btn-secondary btn-sm" onClick={() => loadEmployeeDetail(func.id)} title="Ver detalhes">📋</button>
-                            <button className="btn btn-secondary btn-sm" onClick={() => openAddMov(func)} title="Adicionar horas">⏱️</button>
-                            <button className="btn btn-secondary btn-sm" onClick={() => openEditEmployee(func)} title="Editar">✏️</button>
-                            <button className="btn btn-danger btn-sm" onClick={() => deleteEmployee(func)} title="Excluir">🗑️</button>
-                            <button className="btn btn-whatsapp" onClick={() => sendWhatsApp(func.id)} title="Enviar WhatsApp" disabled={bulkSending}>📱</button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <>
+              {/* CAIXA DE BUSCA */}
+              <div style={{ marginBottom: '1.25rem' }}>
+                <input
+                  type="text"
+                  placeholder="🔍 Buscar funcionário pelo nome..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid #e2e8f0',
+                    fontSize: '1rem',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div className="table-wrapper">
+                <table className="styled-table">
+                  <thead>
+                    <tr>
+                      <th onClick={() => handleSort('nome')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Clique para ordenar">
+                        Nome {sortConfig.key === 'nome' ? (sortConfig.direction === 'asc' ? '🔼' : '🔽') : '↕️'}
+                      </th>
+                      <th onClick={() => handleSort('cargo')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Clique para ordenar">
+                        Cargo {sortConfig.key === 'cargo' ? (sortConfig.direction === 'asc' ? '🔼' : '🔽') : '↕️'}
+                      </th>
+                      <th>Telefone</th>
+                      <th onClick={() => handleSort('saldo_atual')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Clique para ordenar">
+                        Saldo Atual {sortConfig.key === 'saldo_atual' ? (sortConfig.direction === 'asc' ? '🔼' : '🔽') : '↕️'}
+                      </th>
+                      <th>Status</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedAndFiltered.map(func => {
+                      const saldo = parseFloat(func.saldo_atual);
+                      return (
+                        <tr key={func.id}>
+                          <td style={{ fontWeight: 600 }}>{func.nome}</td>
+                          <td style={{ color: 'var(--text-secondary)' }}>{func.cargo}</td>
+                          <td style={{ color: 'var(--text-secondary)', fontFamily: 'monospace', fontSize: '0.8rem' }}>{func.telefone}</td>
+                          <td>
+                            <span className={`badge ${saldo > 0 ? 'badge-success' : saldo < 0 ? 'badge-danger' : 'badge-neutral'}`}>
+                              {saldo > 0 ? '+' : ''}{saldo}h
+                            </span>
+                          </td>
+                          <td>
+                            <span className={`badge ${func.ativo ? 'badge-success' : 'badge-neutral'}`}>
+                              {func.ativo ? 'Ativo' : 'Inativo'}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                              <button className="btn btn-secondary btn-sm" onClick={() => loadEmployeeDetail(func.id)} title="Ver detalhes">📋</button>
+                              <button className="btn btn-secondary btn-sm" onClick={() => openAddMov(func)} title="Adicionar horas">⏱️</button>
+                              <button className="btn btn-secondary btn-sm" onClick={() => openEditEmployee(func)} title="Editar">✏️</button>
+                              <button className="btn btn-danger btn-sm" onClick={() => deleteEmployee(func)} title="Excluir">🗑️</button>
+                              <button className="btn btn-whatsapp" onClick={() => sendWhatsApp(func.id)} title="Enviar WhatsApp" disabled={bulkSending}>📱</button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                {/* MENSAGEM QUANDO A BUSCA NÃO ENCONTRA NINGUÉM */}
+                {sortedAndFiltered.length === 0 && searchTerm !== '' && (
+                  <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                    Nenhum funcionário encontrado com o nome "{searchTerm}".
+                  </p>
+                )}
+              </div>
+            </>
           )}
         </div>
       </main>
