@@ -720,7 +720,7 @@ export default function Dashboard() {
                     <tbody>
                       {detailMovs.map(mov => (
                         <tr key={mov.id}>
-                          <td>{new Date(mov.data_registro).toLocaleDateString('pt-BR')}</td>
+                          <td>{new Date(mov.data_registro).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</td>
                           <td><span className="badge badge-accent">{TIPO_LABELS[mov.tipo] || mov.tipo}</span></td>
                           <td>
                             <span className={`badge ${parseFloat(mov.horas_debito_credito) >= 0 ? 'badge-success' : 'badge-danger'}`}>
