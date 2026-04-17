@@ -183,7 +183,8 @@ export default function Dashboard() {
   };
 
   // ====== MOVEMENTS ======
-  const openAddMov = (emp) => {
+  const openAddMov = (emp, fromDetail = false) => {
+    if (!fromDetail) setDetailEmployee(null);
     setMovTarget(emp);
     setEditingMov(null);
     setMovForm({ tipo: 'extra_50', horas: '', data_registro: '' });
@@ -698,7 +699,7 @@ export default function Dashboard() {
                 <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Todas as Movimentações</h3>
                 <button className="btn btn-primary btn-sm" onClick={() => {
                   setShowDetailModal(false);
-                  openAddMov(detailEmployee);
+                  openAddMov(detailEmployee, true);
                 }}>+ Adicionar</button>
               </div>
 
