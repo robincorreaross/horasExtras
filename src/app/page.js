@@ -202,8 +202,14 @@ export default function Dashboard() {
   };
 
   const saveMov = async () => {
+    // 1. Validação de data obrigatória no frontend
+    if (!movForm.data_registro) {
+      addToast('Por favor, selecione a data do registro.', 'error');
+      return;
+    }
+
     try {
-      let res; // Criamos a variável fora dos blocos para checar depois
+      let res;
       if (editingMov) {
         res = await fetch(`/api/movimentacoes/${editingMov.id}`, {
           method: 'PUT',
@@ -211,11 +217,14 @@ export default function Dashboard() {
           body: JSON.stringify({ ...movForm }),
         });
       } else {
+        // 2. Garantir que puxa o ID corretamente mesmo se a API devolver um Array
+        const targetId = movTarget.id || (Array.isArray(movTarget) ? movTarget[0].id : null);
+
         res = await fetch('/api/movimentacoes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            funcionario_id: movTarget.id,
+            funcionario_id: targetId,
             data_registro: movForm.data_registro,
             tipo: movForm.tipo,
             horas: movForm.horas,
@@ -225,7 +234,6 @@ export default function Dashboard() {
 
       const data = await res.json();
 
-      // Interrompe o processo e exibe o erro retornado pela API sem fechar o modal
       if (!res.ok) {
         addToast(data.error || 'Erro ao salvar movimentação', 'error');
         return;
@@ -234,8 +242,11 @@ export default function Dashboard() {
       addToast(editingMov ? 'Movimentação atualizada!' : 'Movimentação registrada!', 'success');
       setShowMovModal(false);
       fetchFuncionarios();
+
       if (detailEmployee) {
-        loadEmployeeDetail(detailEmployee.id);
+        // Garantir o recarregamento do modal usando o ID seguro
+        const empId = detailEmployee.id || (Array.isArray(detailEmployee) ? detailEmployee[0].id : null);
+        loadEmployeeDetail(empId);
       }
     } catch (err) {
       addToast('Erro de comunicação ao salvar movimentação', 'error');

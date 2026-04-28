@@ -47,25 +47,26 @@ export async function POST(request) {
     const body = await request.json();
     const { funcionario_id, data_registro, tipo, horas } = body;
 
-    // 1. Validação explícita do funcionario_id
+    // 1. Validações de segurança para evitar erro 500 do banco de dados
     if (!funcionario_id) {
       return NextResponse.json({ error: 'funcionario_id é obrigatório' }, { status: 400 });
     }
+    if (!data_registro) {
+      return NextResponse.json({ error: 'A data do registro é obrigatória' }, { status: 400 });
+    }
 
+    // 2. Definir o valor de horas_debito_credito com base no tipo
     let horasDebitoCredito;
     switch (tipo) {
       case 'extra_50':
       case 'extra_100':
-        if (!horas || isNaN(horas)) return NextResponse.json({ error: 'As horas são obrigatórias e devem ser numéricas' }, { status: 400 });
-        horasDebitoCredito = Math.abs(parseFloat(horas));
+        horasDebitoCredito = Math.abs(parseFloat(horas || 0));
         break;
       case 'domingo_menos_1':
-        horasDebitoCredito = -4;
+        horasDebitoCredito = -4; // Sempre -4h
         break;
       case 'falta':
-        // 2. Prevenir que horas vazias se tornem NaN
-        if (!horas || isNaN(horas)) return NextResponse.json({ error: 'A quantidade de horas para a falta é obrigatória' }, { status: 400 });
-        horasDebitoCredito = -Math.abs(parseFloat(horas));
+        horasDebitoCredito = -Math.abs(parseFloat(horas || 0)); // Sempre negativo
         break;
       default:
         return NextResponse.json({ error: 'Tipo inválido' }, { status: 400 });

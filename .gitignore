@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Skills
 mil_skills/
+
+# Scripts
+/scripts_ross
