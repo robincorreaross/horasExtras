@@ -5,13 +5,34 @@ import { NextResponse } from 'next/server';
 export async function GET(request, { params }) {
   try {
     const { id } = await params;
-    const result = await sql`
-      SELECT 
-        f.*,
-        (COALESCE(f.saldo_inicial, 0) + COALESCE((SELECT SUM(horas_debito_credito) FROM movimentacoes_he WHERE funcionario_id = f.id), 0)) as saldo_atual
-      FROM funcionarios_he f
-      WHERE f.id = ${id}
-    `;
+    const { searchParams } = new URL(request.url);
+    const month = searchParams.get('month');
+    const year = searchParams.get('year');
+
+    let result;
+
+    if (month !== null && year !== null) {
+      const pgMonth = parseInt(month) + 1;
+      const pgYear = parseInt(year);
+      const endDate = new Date(pgYear, pgMonth, 0).toISOString().split('T')[0];
+
+      result = await sql`
+        SELECT 
+          f.*,
+          (COALESCE(f.saldo_inicial, 0) + COALESCE((SELECT SUM(horas_debito_credito) FROM movimentacoes_he WHERE funcionario_id = f.id AND data_registro <= ${endDate}), 0)) as saldo_atual
+        FROM funcionarios_he f
+        WHERE f.id = ${id}
+      `;
+    } else {
+      result = await sql`
+        SELECT 
+          f.*,
+          (COALESCE(f.saldo_inicial, 0) + COALESCE((SELECT SUM(horas_debito_credito) FROM movimentacoes_he WHERE funcionario_id = f.id), 0)) as saldo_atual
+        FROM funcionarios_he f
+        WHERE f.id = ${id}
+      `;
+    }
+
     if (result.length === 0) {
       return NextResponse.json({ error: 'Funcionário não encontrado' }, { status: 404 });
     }

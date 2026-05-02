@@ -13,6 +13,7 @@ const TIPO_LABELS = {
   extra_100: 'Extra 100%',
   domingo_menos_1: 'Domingo -1',
   falta: 'Falta',
+  pagamento_horas: 'Pagamento de Horas',
 };
 
 export default function Dashboard() {
@@ -101,7 +102,7 @@ export default function Dashboard() {
 
   const fetchFuncionarios = useCallback(async () => {
     try {
-      const res = await fetch('/api/funcionarios');
+      const res = await fetch(`/api/funcionarios?month=${refMonth}&year=${refYear}`);
       if (res.status === 401) { router.push('/login'); return; }
       const data = await res.json();
       setFuncionarios(data);
@@ -110,7 +111,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [router, refMonth, refYear]);
 
   useEffect(() => { fetchFuncionarios(); }, [fetchFuncionarios]);
 
@@ -270,9 +271,10 @@ export default function Dashboard() {
   // ====== EMPLOYEE DETAIL MODAL ======
   const loadEmployeeDetail = async (empId) => {
     try {
-      const empRes = await fetch(`/api/funcionarios/${empId}`);
+      const empRes = await fetch(`/api/funcionarios/${empId}?month=${refMonth}&year=${refYear}`);
       const empData = await empRes.json();
-      const movsRes = await fetch(`/api/movimentacoes?funcionario_id=${empId}`);
+      const mesStr = `${refYear}-${(refMonth + 1).toString().padStart(2, '0')}`;
+      const movsRes = await fetch(`/api/movimentacoes?funcionario_id=${empId}&mes=${mesStr}`);
       const movsData = await movsRes.json();
       setDetailEmployee(empData);
       setDetailMovs(movsData);
@@ -520,7 +522,7 @@ export default function Dashboard() {
                       </th>
                       <th>Telefone</th>
                       <th onClick={() => handleSort('saldo_atual')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Clique para ordenar">
-                        Saldo Atual {sortConfig.key === 'saldo_atual' ? (sortConfig.direction === 'asc' ? '🔼' : '🔽') : '↕️'}
+                        Saldo do Mês {sortConfig.key === 'saldo_atual' ? (sortConfig.direction === 'asc' ? '🔼' : '🔽') : '↕️'}
                       </th>
                       <th>Status</th>
                       <th>Ações</th>
@@ -644,6 +646,7 @@ export default function Dashboard() {
                   <option value="extra_100">Extra 100%</option>
                   <option value="domingo_menos_1">Domingo -1 (-4h)</option>
                   <option value="falta">Falta (débito manual)</option>
+                  <option value="pagamento_horas">Pagamento de Horas</option>
                 </select>
               </div>
 
@@ -656,7 +659,7 @@ export default function Dashboard() {
                     min="0.5"
                     value={movForm.horas}
                     onChange={e => setMovForm({ ...movForm, horas: e.target.value })}
-                    placeholder={movForm.tipo === 'falta' ? 'Horas a descontar' : 'Quantidade de horas'}
+                    placeholder={movForm.tipo === 'falta' || movForm.tipo === 'pagamento_horas' ? 'Horas a descontar/pagar' : 'Quantidade de horas'}
                   />
                 </div>
               )}

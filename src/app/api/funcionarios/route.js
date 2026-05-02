@@ -2,18 +2,43 @@ import sql from '@/lib/db';
 import { NextResponse } from 'next/server';
 
 // GET /api/funcionarios - Listar todos os funcionários com saldo
-export async function GET() {
+export async function GET(request) {
   try {
-    const funcionarios = await sql`
-      SELECT 
-        f.id, f.nome, f.telefone, f.cargo, f.data_admissao, f.ativo, COALESCE(f.saldo_inicial, 0) as saldo_inicial,
-        COALESCE(SUM(m.horas_debito_credito), 0) as soma_movimentacoes,
-        (COALESCE(f.saldo_inicial, 0) + COALESCE(SUM(m.horas_debito_credito), 0)) as saldo_atual
-      FROM funcionarios_he f
-      LEFT JOIN movimentacoes_he m ON f.id = m.funcionario_id
-      GROUP BY f.id
-      ORDER BY f.nome ASC
-    `;
+    const { searchParams } = new URL(request.url);
+    const month = searchParams.get('month');
+    const year = searchParams.get('year');
+
+    let funcionarios;
+
+    if (month !== null && year !== null) {
+      const pgMonth = parseInt(month) + 1;
+      const pgYear = parseInt(year);
+      const endDate = new Date(pgYear, pgMonth, 0).toISOString().split('T')[0];
+
+      funcionarios = await sql`
+        SELECT 
+          f.id, f.nome, f.telefone, f.cargo, f.data_admissao, f.ativo, COALESCE(f.saldo_inicial, 0) as saldo_inicial,
+          COALESCE(SUM(m.horas_debito_credito), 0) as soma_movimentacoes,
+          (COALESCE(f.saldo_inicial, 0) + COALESCE(SUM(m.horas_debito_credito), 0)) as saldo_atual
+        FROM funcionarios_he f
+        LEFT JOIN movimentacoes_he m ON f.id = m.funcionario_id 
+          AND m.data_registro <= ${endDate}
+        GROUP BY f.id
+        ORDER BY f.nome ASC
+      `;
+    } else {
+      funcionarios = await sql`
+        SELECT 
+          f.id, f.nome, f.telefone, f.cargo, f.data_admissao, f.ativo, COALESCE(f.saldo_inicial, 0) as saldo_inicial,
+          COALESCE(SUM(m.horas_debito_credito), 0) as soma_movimentacoes,
+          (COALESCE(f.saldo_inicial, 0) + COALESCE(SUM(m.horas_debito_credito), 0)) as saldo_atual
+        FROM funcionarios_he f
+        LEFT JOIN movimentacoes_he m ON f.id = m.funcionario_id
+        GROUP BY f.id
+        ORDER BY f.nome ASC
+      `;
+    }
+    
     return NextResponse.json(funcionarios);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

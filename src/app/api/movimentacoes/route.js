@@ -66,6 +66,7 @@ export async function POST(request) {
         horasDebitoCredito = -4; // Sempre -4h
         break;
       case 'falta':
+      case 'pagamento_horas':
         horasDebitoCredito = -Math.abs(parseFloat(horas || 0)); // Sempre negativo
         break;
       default:

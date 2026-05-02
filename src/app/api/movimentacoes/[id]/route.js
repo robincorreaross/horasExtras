@@ -20,6 +20,7 @@ export async function PUT(request, { params }) {
         horasDebitoCredito = -4;
         break;
       case 'falta':
+      case 'pagamento_horas':
         horasDebitoCredito = -Math.abs(parseFloat(horas));
         break;
       default:
