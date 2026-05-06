@@ -18,8 +18,10 @@ export async function createClient() {
               // Removemos qualquer tempo de vida pré-definido pelo Supabase.
               // Sem estas propriedades, o navegador cria um "Cookie de Sessão"
               // que é destruído automaticamente ao fechar o navegador.
-              delete options.maxAge;
-              delete options.expires;
+              if (value !== '') {
+                delete options.maxAge;
+                delete options.expires;
+              }
 
               cookieStore.set(name, value, options)
             })

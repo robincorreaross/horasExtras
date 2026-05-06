@@ -23,9 +23,12 @@ export async function updateSession(request) {
           })
           cookiesToSet.forEach(({ name, value, options }) => {
 
-            // Transforma num Cookie de Sessão
-            delete options.maxAge;
-            delete options.expires;
+            // Se o valor não for vazio, transforma num Cookie de Sessão
+            // Se for vazio (logout), mantém o maxAge para deletar corretamente
+            if (value !== '') {
+              delete options.maxAge;
+              delete options.expires;
+            }
 
             supabaseResponse.cookies.set(name, value, options)
           })
@@ -59,6 +62,37 @@ export async function updateSession(request) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
+  }
+
+  // Lógica de inatividade (60 minutos)
+  if (user) {
+    const now = Date.now()
+    const lastActiveStr = request.cookies.get('app_last_active')?.value
+    const lastActive = lastActiveStr ? parseInt(lastActiveStr, 10) : now
+    const MAX_IDLE_TIME = 60 * 60 * 1000 // 60 minutos em milissegundos
+
+    if (now - lastActive > MAX_IDLE_TIME) {
+      // Faz logout por inatividade
+      await supabase.auth.signOut()
+      
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      url.searchParams.set('reason', 'timeout')
+      
+      const redirectResponse = NextResponse.redirect(url)
+      // Limpa o cookie de inatividade na resposta de redirecionamento
+      redirectResponse.cookies.set('app_last_active', '', { maxAge: 0, path: '/' })
+      return redirectResponse
+    }
+
+    // Atualiza o cookie de inatividade para renovar a sessão
+    supabaseResponse.cookies.set('app_last_active', now.toString(), {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      // Sem maxAge/expires = Session Cookie
+    })
   }
 
   // If user is signed in and trying to access /login, redirect to dashboard
