@@ -14,13 +14,19 @@ export async function createClient() {
         },
         setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
+            cookiesToSet.forEach(({ name, value, options }) => {
+              // Força o cookie a expirar após 60 minutos (3600 segundos) de inatividade
+              options.maxAge = 3600;
+
+              // NOTA: Se você preferir que o sistema deslogue estritamente ao 
+              // fechar o navegador, comente a linha acima e use as duas abaixo:
+              // delete options.maxAge;
+              // delete options.expires;
+
               cookieStore.set(name, value, options)
-            )
+            })
           } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+            // Ignorado intencionalmente se chamado num Server Component
           }
         },
       },
