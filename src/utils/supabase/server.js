@@ -15,18 +15,16 @@ export async function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              // Força o cookie a expirar após 60 minutos (3600 segundos) de inatividade
-              options.maxAge = 3600;
-
-              // NOTA: Se você preferir que o sistema deslogue estritamente ao 
-              // fechar o navegador, comente a linha acima e use as duas abaixo:
-              // delete options.maxAge;
-              // delete options.expires;
+              // Removemos qualquer tempo de vida pré-definido pelo Supabase.
+              // Sem estas propriedades, o navegador cria um "Cookie de Sessão"
+              // que é destruído automaticamente ao fechar o navegador.
+              delete options.maxAge;
+              delete options.expires;
 
               cookieStore.set(name, value, options)
             })
           } catch {
-            // Ignorado intencionalmente se chamado num Server Component
+            // Ocultado intencionalmente
           }
         },
       },

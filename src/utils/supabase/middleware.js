@@ -16,15 +16,16 @@ export async function updateSession(request) {
         getAll() {
           return request.cookies.getAll()
         },
-        ssetAll(cookiesToSet) {
+        setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
           cookiesToSet.forEach(({ name, value, options }) => {
 
-            // Aplica a mesma regra de 60 minutos no middleware
-            options.maxAge = 3600;
+            // Transforma num Cookie de Sessão
+            delete options.maxAge;
+            delete options.expires;
 
             supabaseResponse.cookies.set(name, value, options)
           })
