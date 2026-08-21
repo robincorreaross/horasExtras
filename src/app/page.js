@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import ContasView from '@/components/ContasView';
 
 const MONTH_NAMES = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -19,6 +20,10 @@ const TIPO_LABELS = {
 export default function Dashboard() {
   const router = useRouter();
   const now = new Date();
+
+  // Tab State
+  const [activeTab, setActiveTab] = useState('horas'); // 'horas' | 'contas'
+
 
   // Mês anterior como padrão
   let defaultMonth = now.getMonth() - 1;
@@ -397,20 +402,38 @@ export default function Dashboard() {
       {/* NAVBAR */}
       <nav className="navbar">
         <div className="navbar-content">
-          <span className="logo">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-            TimeFlow
-          </span>
-          <div className="nav-actions">
-            <div className="month-selector">
-              <label>Mês Ref:</label>
-              <select value={refMonth} onChange={(e) => setRefMonth(parseInt(e.target.value))}>
-                {MONTH_NAMES.map((m, i) => <option key={i} value={i}>{m}</option>)}
-              </select>
-              <select value={refYear} onChange={(e) => setRefYear(parseInt(e.target.value))}>
-                {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
-              </select>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+            <span className="logo">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+              TimeFlow
+            </span>
+            <div className="tab-nav">
+              <button
+                className={`tab-btn ${activeTab === 'horas' ? 'active' : ''}`}
+                onClick={() => setActiveTab('horas')}
+              >
+                ⏱️ Banco de Horas
+              </button>
+              <button
+                className={`tab-btn ${activeTab === 'contas' ? 'active' : ''}`}
+                onClick={() => setActiveTab('contas')}
+              >
+                🧾 Contas & Holerites
+              </button>
             </div>
+          </div>
+          <div className="nav-actions">
+            {activeTab === 'horas' && (
+              <div className="month-selector">
+                <label>Mês Ref:</label>
+                <select value={refMonth} onChange={(e) => setRefMonth(parseInt(e.target.value))}>
+                  {MONTH_NAMES.map((m, i) => <option key={i} value={i}>{m}</option>)}
+                </select>
+                <select value={refYear} onChange={(e) => setRefYear(parseInt(e.target.value))}>
+                  {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
+            )}
             <button className="btn btn-secondary btn-sm" onClick={handleLogout}>Sair</button>
           </div>
         </div>
@@ -424,21 +447,26 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* HEADER */}
-        <div className="page-header">
-          <div>
-            <h1 className="page-title">Dashboard</h1>
-            <p className="page-subtitle">
-              Referência: {MONTH_NAMES[refMonth]} de {refYear}
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button className="btn btn-primary" onClick={openNewEmployee}>+ Novo Funcionário</button>
-            <button className="btn btn-whatsapp" onClick={sendBulkWhatsApp} disabled={bulkSending}>
-              {bulkSending ? <><span className="spinner"></span> Enviando...</> : '📱 Enviar Todos'}
-            </button>
-          </div>
-        </div>
+        {activeTab === 'contas' ? (
+          <ContasView addToast={addToast} />
+        ) : (
+          <>
+            {/* HEADER */}
+            <div className="page-header">
+              <div>
+                <h1 className="page-title">Banco de Horas</h1>
+                <p className="page-subtitle">
+                  Referência: {MONTH_NAMES[refMonth]} de {refYear}
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <button className="btn btn-primary" onClick={openNewEmployee}>+ Novo Funcionário</button>
+                <button className="btn btn-whatsapp" onClick={sendBulkWhatsApp} disabled={bulkSending}>
+                  {bulkSending ? <><span className="spinner"></span> Enviando...</> : '📱 Enviar Todos'}
+                </button>
+              </div>
+            </div>
+
 
         {/* BULK PROGRESS */}
         {bulkSending && (
@@ -571,7 +599,10 @@ export default function Dashboard() {
             </>
           )}
         </div>
+        </>
+        )}
       </main>
+
 
       {/* EMPLOYEE MODAL */}
       {showEmployeeModal && (
