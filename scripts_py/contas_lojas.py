@@ -137,7 +137,7 @@ def atualizar_supabase(df_final):
 
     # 1. Zera as contas de todo mundo no Supabase
     cur.execute("""
-        UPDATE funcionarios
+        UPDATE colaboradores
         SET "valorConta" = 0;
     """)
     print("🧹 Todas as contas no Supabase foram zeradas com sucesso.")
@@ -145,11 +145,12 @@ def atualizar_supabase(df_final):
     # 2. Atualiza os valores consolidados
     for row in df_final.itertuples():
         cur.execute("""
-            UPDATE funcionarios
+            UPDATE colaboradores
             SET "valorConta" = %s
-            WHERE id = %s;
+            WHERE id_loja = %s;
         """, (row.valor, row.codigo_cliente))
         print(f"🔄 Atualizado funcionario ID={row.codigo_cliente} -> R$ {row.valor:.2f}")
+
 
     conn.commit()
     cur.close()

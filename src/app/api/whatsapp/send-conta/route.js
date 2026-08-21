@@ -35,22 +35,22 @@ export async function POST(request) {
       );
     }
 
-    // 2. Buscar dados do funcionário
+    // 2. Buscar dados do colaborador na tabela colaboradores
     const rows = await sql`
-      SELECT id, nome, telefone, loja, COALESCE("valorConta", '0') as "valorConta", "contaPDF", "holeritePDF"
-      FROM funcionarios
-      WHERE id = ${funcionario_id}
+      SELECT id, id_loja, nome, telefone, loja, COALESCE("valorConta", '0') as "valorConta", "contaPDF", "holeritePDF"
+      FROM colaboradores
+      WHERE id::text = ${funcionario_id} OR id_loja::text = ${funcionario_id}
     `;
 
     if (rows.length === 0) {
-      return NextResponse.json({ success: false, error: 'Funcionário não encontrado' }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Colaborador não encontrado' }, { status: 404 });
     }
 
     const emp = rows[0];
 
     if (!emp.telefone) {
       return NextResponse.json(
-        { success: false, error: `Funcionário ${emp.nome} não possui telefone cadastrado` },
+        { success: false, error: `Colaborador ${emp.nome} não possui telefone cadastrado` },
         { status: 400 }
       );
     }

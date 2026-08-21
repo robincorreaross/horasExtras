@@ -17,8 +17,8 @@ function formatBRL(val) {
   return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-export default function ContasView({ addToast }) {
-  const [contas, setContas] = useState([]);
+export default function ContasView({ addToast, onOpenColabModal }) {
+  const [colaboradores, setColaboradores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedLoja, setSelectedLoja] = useState('TODAS');
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,8 +27,6 @@ export default function ContasView({ addToast }) {
   // Modal States
   const [previewModal, setPreviewModal] = useState({ open: false, emp: null, tipo: 'aviso_17' });
   const [uploadModal, setUploadModal] = useState({ open: false, emp: null, tipoDoc: 'conta' });
-  const [editModal, setEditModal] = useState({ open: false, emp: null });
-  const [editForm, setEditForm] = useState({ nome: '', telefone: '', loja: '', valorConta: '0', Ativo: true });
   const [uploadFile, setUploadFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
@@ -54,12 +52,12 @@ export default function ContasView({ addToast }) {
     setLoading(true);
     try {
       const query = selectedLoja !== 'TODAS' ? `?loja=${encodeURIComponent(selectedLoja)}` : '';
-      const res = await fetch(`/api/contas${query}`);
+      const res = await fetch(`/api/funcionarios${query}`);
       const data = await res.json();
       if (Array.isArray(data)) {
-        setContas(data);
+        setColaboradores(data);
       } else {
-        addToast(data.error || 'Erro ao carregar contas', 'error');
+        addToast(data.error || 'Erro ao carregar dados das contas', 'error');
       }
     } catch (err) {
       addToast('Erro de comunicação com o servidor', 'error');
@@ -73,11 +71,14 @@ export default function ContasView({ addToast }) {
   }, [fetchContas]);
 
   // ====== FILTER & SORT ======
-  const filteredContas = contas.filter((c) => {
-    const matchesSearch = c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (c.telefone && c.telefone.includes(searchTerm)) ||
-      (c.loja && c.loja.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesSearch;
+  const filteredContas = colaboradores.filter((c) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      (c.nome && c.nome.toLowerCase().includes(term)) ||
+      (c.telefone && c.telefone.includes(term)) ||
+      (c.loja && c.loja.toLowerCase().includes(term)) ||
+      (c.id_loja && String(c.id_loja).includes(term))
+    );
   });
 
   const sortedContas = [...filteredContas].sort((a, b) => {
@@ -85,7 +86,7 @@ export default function ContasView({ addToast }) {
     let valA = a[key];
     let valB = b[key];
 
-    if (key === 'valorConta') {
+    if (key === 'valorConta' || key === 'id_loja') {
       valA = parseFloat(valA || 0);
       valB = parseFloat(valB || 0);
     } else {
@@ -158,7 +159,7 @@ export default function ContasView({ addToast }) {
 
   // ====== SYNC LOCAL FILES ======
   const triggerSyncLocal = async (tipo) => {
-    setSyncModal({ open: true, syncing: true, logs: ['⏳ Iniciando verificação das pastas locais e upload para o Supabase...'] });
+    setSyncModal({ open: true, syncing: true, logs: ['⏳ Iniciando verificação das pastas locais e upload para o Supabase Storage...'] });
     try {
       const res = await fetch('/api/contas/sync-local', {
         method: 'POST',
@@ -246,17 +247,17 @@ export default function ContasView({ addToast }) {
 
   // ====== BULK SEND WHATSAPP ======
   const startBulkSend = async (tipo) => {
-    const targets = sortedContas.filter((c) => c.Ativo && c.telefone);
+    const targets = sortedContas.filter((c) => c.ativo && c.telefone);
 
     if (targets.length === 0) {
-      addToast('Nenhum funcionário ativo com telefone cadastrado para o envio', 'error');
+      addToast('Nenhum colaborador ativo com telefone cadastrado para o envio', 'error');
       return;
     }
 
     if (tipo === 'fechamento_18') {
       const semPdf = targets.filter(c => !c.contaPDF);
       if (semPdf.length > 0) {
-        if (!confirm(`Atenção: ${semPdf.length} funcionário(s) não possuem PDF do Extrato. O disparo continuará apenas para os que possuem PDF. Deseja prosseguir?`)) {
+        if (!confirm(`Atenção: ${semPdf.length} colaborador(es) não possuem PDF do Extrato. O disparo continuará apenas para os que possuem PDF. Deseja prosseguir?`)) {
           return;
         }
       }
@@ -265,14 +266,14 @@ export default function ContasView({ addToast }) {
     if (tipo === 'holerite') {
       const semHolerite = targets.filter(c => !c.holeritePDF);
       if (semHolerite.length > 0) {
-        if (!confirm(`Atenção: ${semHolerite.length} funcionário(s) não possuem PDF de Holerite. Deseja prosseguir mesmo assim?`)) {
+        if (!confirm(`Atenção: ${semHolerite.length} colaborador(es) não possuem PDF de Holerite. Deseja prosseguir mesmo assim?`)) {
           return;
         }
       }
     }
 
     const desc = tipo === 'aviso_17' ? 'Aviso Dia 17 (Sem PDF)' : tipo === 'fechamento_18' ? 'Extrato com PDF (Dia 18)' : 'Holerite em PDF';
-    if (!confirm(`Confirma o disparo MANUAL em massa de ${desc} para ${targets.length} funcionário(s)?`)) {
+    if (!confirm(`Confirma o disparo MANUAL em massa de ${desc} para ${targets.length} colaborador(es)?`)) {
       return;
     }
 
@@ -319,56 +320,12 @@ export default function ContasView({ addToast }) {
         }));
       }
 
-      // Delay de 4 segundos entre mensagens para segurança do WhatsApp
       if (i < targets.length - 1) {
         await new Promise((r) => setTimeout(r, 4000));
       }
     }
 
     addToast('Disparo em massa finalizado!', 'info');
-  };
-
-  // ====== EDIT EMPLOYEE ======
-  const openEdit = (emp) => {
-    setEditModal({ open: true, emp });
-    setEditForm({
-      id: emp ? emp.id : '',
-      nome: emp ? emp.nome : '',
-      telefone: emp ? emp.telefone || '' : '',
-      loja: emp ? emp.loja || '' : LOJAS[1],
-      valorConta: emp ? emp.valorConta || '0' : '0',
-      Ativo: emp ? emp.Ativo !== false : true,
-    });
-  };
-
-
-  const saveEdit = async () => {
-    try {
-      let res;
-      if (editModal.emp) {
-        res = await fetch('/api/contas', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: editModal.emp.id, ...editForm }),
-        });
-      } else {
-        res = await fetch('/api/contas', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...editForm }),
-        });
-      }
-      const data = await res.json();
-      if (res.ok) {
-        addToast(editModal.emp ? 'Dados atualizados com sucesso!' : 'Funcionário cadastrado!', 'success');
-        setEditModal({ open: false, emp: null });
-        fetchContas();
-      } else {
-        addToast(data.error || 'Erro ao salvar', 'error');
-      }
-    } catch (err) {
-      addToast('Erro ao salvar informações', 'error');
-    }
   };
 
   // ====== UPLOAD PDF (AVULSO MANUAL) ======
@@ -409,7 +366,7 @@ export default function ContasView({ addToast }) {
   };
 
   // STATS
-  const totalFuncionarios = sortedContas.length;
+  const totalColaboradores = sortedContas.length;
   const totalSomaContas = sortedContas.reduce((acc, c) => acc + parseFloat(c.valorConta || 0), 0);
   const totalPdfsContas = sortedContas.filter((c) => !!c.contaPDF).length;
   const totalPdfsHolerites = sortedContas.filter((c) => !!c.holeritePDF).length;
@@ -447,98 +404,97 @@ export default function ContasView({ addToast }) {
   };
 
   return (
-    <div className="contas-container">
-      {/* ACTION BAR & STATS */}
-      <div className="stats-row">
-        <div className="stat-card">
-          <span className="stat-label">Funcionários com Conta</span>
-          <span className="stat-value">{totalFuncionarios}</span>
+    <div>
+      {/* STATS ROW */}
+      <div className="stats-grid">
+        <div className="stat-item">
+          <span className="stat-item-label">Colaboradores Listados</span>
+          <span className="stat-item-value">{totalColaboradores}</span>
         </div>
-        <div className="stat-card">
-          <span className="stat-label">Total das Contas</span>
-          <span className="stat-value" style={{ color: 'var(--primary)' }}>
+        <div className="stat-item">
+          <span className="stat-item-label">Total das Contas</span>
+          <span className="stat-item-value" style={{ color: 'var(--cyan)' }}>
             {formatBRL(totalSomaContas)}
           </span>
         </div>
-        <div className="stat-card">
-          <span className="stat-label">Extratos PDF</span>
-          <span className="stat-value" style={{ color: totalPdfsContas > 0 ? 'var(--success)' : 'var(--text-muted)' }}>
-            {totalPdfsContas} / {totalFuncionarios}
+        <div className="stat-item">
+          <span className="stat-item-label">Extratos PDF</span>
+          <span className="stat-item-value" style={{ color: totalPdfsContas > 0 ? 'var(--success)' : 'var(--text-muted)' }}>
+            {totalPdfsContas} / {totalColaboradores}
           </span>
         </div>
-        <div className="stat-card">
-          <span className="stat-label">Holerites PDF</span>
-          <span className="stat-value" style={{ color: totalPdfsHolerites > 0 ? 'var(--accent)' : 'var(--text-muted)' }}>
-            {totalPdfsHolerites} / {totalFuncionarios}
+        <div className="stat-item">
+          <span className="stat-item-label">Holerites PDF</span>
+          <span className="stat-item-value" style={{ color: totalPdfsHolerites > 0 ? 'var(--accent-light)' : 'var(--text-muted)' }}>
+            {totalPdfsHolerites} / {totalColaboradores}
           </span>
         </div>
       </div>
 
-      {/* PAINEL DE DISPAROS E SINCRONIZAÇÃO DAS PASTAS */}
-      <div className="card" style={{ marginBottom: '1.5rem', background: 'linear-gradient(135deg, rgba(30,41,59,0.7), rgba(15,23,42,0.9))', border: '1px solid rgba(255,255,255,0.1)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+      {/* GESTÃO & FERRAMENTAS */}
+      <div className="card">
+        <div className="card-header-clean">
           <div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              ⚡ Gestão de PDFs e Disparos WhatsApp
+            <h3 className="card-title">
+              ⚡ Automação e Gestão de Extratos
             </h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-              Execute os scripts em Python diretamente pelo navegador ou sincronize e acione os disparos manuais.
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+              Execute os scripts de fechamento e sincronize os PDFs das contas e holerites.
             </p>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            {/* BOTÕES PARA EXECUTAR OS SCRIPTS PYTHON */}
             <button
-              className="btn btn-secondary"
+              className="btn btn-secondary btn-sm"
               onClick={() => triggerRunScript('contas_lojas')}
-              title="Rodar script contas_lojas.py para atualizar valores das contas"
+              title="Executar script contas_lojas.py"
             >
               🐍 1. Atualizar Valores (contas_lojas.py)
             </button>
             <button
-              className="btn btn-secondary"
+              className="btn btn-secondary btn-sm"
               onClick={() => triggerRunScript('conta_pdf_download')}
-              title="Rodar script conta-pdf-download.py para baixar extratos em PDF"
+              title="Executar script conta-pdf-download.py"
             >
               🐍 2. Baixar PDFs (conta-pdf-download.py)
             </button>
-
-            {/* BOTÕES DE SINCRONIZAÇÃO E LIMPEZA DE PDFS */}
             <button
-              className="btn btn-primary"
+              className="btn btn-primary btn-sm"
               onClick={() => triggerSyncLocal('todos')}
-              title="Ler arquivos PDF das pastas locais e enviar para o Supabase"
+              title="Ler arquivos locais e subir para o Supabase"
             >
-              📥 Sincronizar Arquivos Locais
+              📥 Sincronizar PDFs Locais
             </button>
             <button
-              className="btn btn-danger"
+              className="btn btn-danger btn-sm"
               onClick={() => setClearModal({ open: true, clearing: false })}
-              title="Limpar registros de PDFs do banco de dados"
+              title="Limpar URLs de PDFs do banco de dados"
             >
               🗑️ Limpar PDFs
             </button>
           </div>
         </div>
 
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: '1rem', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#cbd5e1' }}>Disparos Manuais por WhatsApp:</span>
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+            Disparos Manuais por WhatsApp:
+          </span>
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
             <button
-              className="btn btn-warning"
+              className="btn btn-warning btn-sm"
               onClick={() => startBulkSend('aviso_17')}
               disabled={bulkState.active}
             >
               📅 Disparar Aviso (Dia 17)
             </button>
             <button
-              className="btn btn-whatsapp"
+              className="btn btn-whatsapp btn-sm"
               onClick={() => startBulkSend('fechamento_18')}
               disabled={bulkState.active}
             >
               📑 Disparar Extrato com PDF (Dia 18)
             </button>
             <button
-              className="btn btn-secondary"
+              className="btn btn-secondary btn-sm"
               onClick={() => startBulkSend('holerite')}
               disabled={bulkState.active}
             >
@@ -547,11 +503,11 @@ export default function ContasView({ addToast }) {
           </div>
         </div>
 
-        {/* PROGRESSO DO DISPARO EM MASSA */}
+        {/* PROGRESS BAR DO DISPARO EM MASSA */}
         {bulkState.active && (
-          <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#fff' }}>
+          <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                 Enviando {bulkState.tipo === 'aviso_17' ? 'Aviso Dia 17' : bulkState.tipo === 'fechamento_18' ? 'Extratos PDF Dia 18' : 'Holerites'}...
               </span>
               <span className="badge badge-accent">
@@ -564,7 +520,7 @@ export default function ContasView({ addToast }) {
                 style={{ width: `${(bulkState.current / bulkState.total) * 100}%` }}
               ></div>
             </div>
-            <div style={{ maxHeight: '120px', overflowY: 'auto', marginTop: '0.75rem', fontSize: '0.8rem', background: 'rgba(0,0,0,0.3)', padding: '0.5rem 0.75rem', borderRadius: '6px' }}>
+            <div style={{ maxHeight: '120px', overflowY: 'auto', marginTop: '0.5rem', fontSize: '0.8rem', background: 'rgba(0,0,0,0.3)', padding: '0.5rem 0.75rem', borderRadius: '6px' }}>
               {bulkState.logs.map((log, idx) => (
                 <div key={idx} style={{ color: log.status === 'success' ? '#4ade80' : '#f87171', margin: '0.15rem 0' }}>
                   {log.text}
@@ -574,7 +530,7 @@ export default function ContasView({ addToast }) {
             {bulkState.current >= bulkState.total && (
               <button
                 className="btn btn-secondary btn-sm"
-                style={{ marginTop: '0.75rem' }}
+                style={{ marginTop: '0.5rem' }}
                 onClick={() => setBulkState({ active: false, tipo: 'aviso_17', current: 0, total: 0, logs: [] })}
               >
                 Fechar Progresso
@@ -584,14 +540,14 @@ export default function ContasView({ addToast }) {
         )}
       </div>
 
-      {/* FILTROS E BUSCA */}
+      {/* TABELA DE CONTAS */}
       <div className="card">
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1.25rem', justifyContent: 'space-between' }}>
+        <div className="card-header-clean">
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', flex: 1, minWidth: '280px' }}>
             <input
               type="text"
               className="search-input"
-              placeholder="🔍 Buscar por nome, telefone ou loja..."
+              placeholder="🔍 Buscar por nome, telefone, ID da loja..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{ flex: 1 }}
@@ -611,16 +567,12 @@ export default function ContasView({ addToast }) {
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button className="btn btn-primary btn-sm" onClick={() => openEdit(null)}>
-              + Cadastrar Colaborador
-            </button>
             <button className="btn btn-secondary btn-sm" onClick={fetchContas}>
               🔄 Atualizar
             </button>
           </div>
         </div>
 
-        {/* TABELA DE CONTAS */}
         {loading ? (
           <div className="empty-state">
             <span className="spinner" style={{ width: 28, height: 28 }}></span>
@@ -628,15 +580,15 @@ export default function ContasView({ addToast }) {
           </div>
         ) : sortedContas.length === 0 ? (
           <div className="empty-state">
-            <p>Nenhum funcionário encontrado.</p>
+            <p>Nenhum colaborador encontrado.</p>
           </div>
         ) : (
           <div className="table-responsive">
             <table className="data-table">
               <thead>
                 <tr>
-                  <th onClick={() => handleSort('id')} style={{ cursor: 'pointer', width: '70px' }}>
-                    ID {sortConfig.key === 'id' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                  <th onClick={() => handleSort('id_loja')} style={{ cursor: 'pointer', width: '80px' }}>
+                    ID Loja {sortConfig.key === 'id_loja' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                   </th>
                   <th onClick={() => handleSort('nome')} style={{ cursor: 'pointer' }}>
                     Nome {sortConfig.key === 'nome' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
@@ -656,15 +608,19 @@ export default function ContasView({ addToast }) {
               <tbody>
                 {sortedContas.map((emp) => (
                   <tr key={emp.id}>
-                    <td style={{ fontWeight: 600, color: 'var(--text-muted)' }}>#{emp.id}</td>
+                    <td style={{ fontWeight: 700, color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                      {emp.id_loja ? `#${emp.id_loja}` : <span style={{ color: 'var(--text-dim)' }}>—</span>}
+                    </td>
                     <td style={{ fontWeight: 600 }}>{emp.nome}</td>
-                    <td>{emp.telefone || <span style={{ color: 'var(--text-muted)' }}>Sem telefone</span>}</td>
+                    <td style={{ color: 'var(--text-secondary)', fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                      {emp.telefone || <span style={{ color: 'var(--text-dim)' }}>Sem telefone</span>}
+                    </td>
                     <td>
-                      <span className="badge badge-secondary" style={{ fontSize: '0.75rem' }}>
+                      <span className="badge badge-neutral" style={{ fontSize: '0.75rem' }}>
                         {emp.loja || 'Sem Loja'}
                       </span>
                     </td>
-                    <td style={{ textAlign: 'right', fontWeight: 700, fontSize: '1rem', color: parseFloat(emp.valorConta || 0) > 0 ? '#38bdf8' : 'var(--text-muted)' }}>
+                    <td style={{ textAlign: 'right', fontWeight: 800, fontSize: '0.95rem', color: parseFloat(emp.valorConta || 0) > 0 ? 'var(--cyan)' : 'var(--text-muted)' }}>
                       {formatBRL(emp.valorConta)}
                     </td>
                     <td style={{ textAlign: 'center' }}>
@@ -676,13 +632,12 @@ export default function ContasView({ addToast }) {
                             rel="noopener noreferrer"
                             className="badge badge-success"
                             title="Visualizar PDF da Conta"
-                            style={{ textDecoration: 'none' }}
                           >
                             📄 Ver PDF
                           </a>
                           <button
                             className="btn-icon"
-                            title="Trocar PDF da Conta"
+                            title="Substituir PDF"
                             onClick={() => setUploadModal({ open: true, emp, tipoDoc: 'conta' })}
                           >
                             ⬆️
@@ -706,13 +661,12 @@ export default function ContasView({ addToast }) {
                             rel="noopener noreferrer"
                             className="badge badge-accent"
                             title="Visualizar Holerite PDF"
-                            style={{ textDecoration: 'none' }}
                           >
                             📄 Ver Holerite
                           </a>
                           <button
                             className="btn-icon"
-                            title="Trocar Holerite PDF"
+                            title="Substituir Holerite"
                             onClick={() => setUploadModal({ open: true, emp, tipoDoc: 'holerite' })}
                           >
                             ⬆️
@@ -731,24 +685,17 @@ export default function ContasView({ addToast }) {
                       <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
                         <button
                           className="btn btn-warning btn-xs"
-                          title="Prévia e envio manual do Aviso Dia 17 (Sem PDF)"
+                          title="Prévia e envio manual do Aviso Dia 17"
                           onClick={() => setPreviewModal({ open: true, emp, tipo: 'aviso_17' })}
                         >
                           📅 Dia 17
                         </button>
                         <button
                           className="btn btn-whatsapp btn-xs"
-                          title="Prévia e envio manual do Extrato PDF Dia 18"
+                          title="Prévia e envio manual do Extrato com PDF Dia 18"
                           onClick={() => setPreviewModal({ open: true, emp, tipo: 'fechamento_18' })}
                         >
                           📑 Dia 18 (PDF)
-                        </button>
-                        <button
-                          className="btn btn-secondary btn-xs"
-                          title="Editar cadastro/valor"
-                          onClick={() => openEdit(emp)}
-                        >
-                          ✏️
                         </button>
                       </div>
                     </td>
@@ -781,13 +728,13 @@ export default function ContasView({ addToast }) {
                   <p style={{ marginTop: '0.75rem', fontWeight: 600 }}>Executando script no servidor local...</p>
                 </div>
               )}
-              <pre style={{ maxHeight: '300px', overflowY: 'auto', background: '#0f172a', padding: '1rem', borderRadius: '8px', color: '#38bdf8', fontSize: '0.85rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
+              <pre style={{ maxHeight: '300px', overflowY: 'auto', background: '#090d16', padding: '1rem', borderRadius: '8px', color: 'var(--cyan)', fontSize: '0.85rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
                 {scriptModal.output}
               </pre>
             </div>
             <div className="modal-footer">
               <button
-                className="btn btn-primary"
+                className="btn btn-primary btn-sm"
                 onClick={() => setScriptModal({ open: false, running: false, title: '', output: '' })}
                 disabled={scriptModal.running}
               >
@@ -861,7 +808,7 @@ export default function ContasView({ addToast }) {
             </div>
             <div className="modal-body">
               <p style={{ fontSize: '0.9rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>
-                Selecione quais links de PDF você deseja remover/zerar do banco de dados:
+                Selecione quais links de PDF você deseja remover do cadastro dos colaboradores:
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <button
@@ -886,12 +833,12 @@ export default function ContasView({ addToast }) {
                   onClick={() => triggerClearPdfs('todos')}
                   disabled={clearModal.clearing}
                 >
-                  🚨 Limpar TODOS os PDFs (Extratos e Holerites)
+                  🚨 Limpar TODOS os PDFs
                 </button>
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setClearModal({ open: false, clearing: false })}>
+              <button className="btn btn-secondary btn-sm" onClick={() => setClearModal({ open: false, clearing: false })}>
                 Cancelar
               </button>
             </div>
@@ -913,12 +860,12 @@ export default function ContasView({ addToast }) {
               </button>
             </div>
             <div className="modal-body">
-              <div style={{ marginBottom: '1rem' }}>
+              <div style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
                 <strong>Colaborador:</strong> {previewModal.emp.nome} <br />
                 <strong>Telefone:</strong> {previewModal.emp.telefone || 'Não informado'} <br />
-                <strong>Loja:</strong> {previewModal.emp.loja} <br />
+                <strong>Loja:</strong> {previewModal.emp.loja || 'Não informada'} <br />
                 <strong>Tipo de Disparo:</strong>{' '}
-                <span className="badge badge-primary">
+                <span className="badge badge-accent">
                   {previewModal.tipo === 'aviso_17'
                     ? 'Aviso de Fechamento (Dia 17 - Sem PDF)'
                     : previewModal.tipo === 'fechamento_18'
@@ -928,26 +875,26 @@ export default function ContasView({ addToast }) {
               </div>
 
               <div className="whatsapp-preview-box">
-                <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: 0 }}>
+                <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>
                   {getPreviewText(previewModal.emp, previewModal.tipo)}
                 </pre>
               </div>
 
               {previewModal.tipo === 'fechamento_18' && !previewModal.emp.contaPDF && (
-                <div style={{ marginTop: '0.75rem', color: '#f87171', fontSize: '0.85rem' }}>
-                  ⚠️ Atenção: Este funcionário não possui o PDF do Extrato cadastrado. Faça o upload antes de enviar.
+                <div style={{ marginTop: '0.75rem', color: 'var(--danger)', fontSize: '0.85rem' }}>
+                  ⚠️ Atenção: Este colaborador não possui o PDF do Extrato. Faça o upload antes de enviar.
                 </div>
               )}
             </div>
             <div className="modal-footer">
               <button
-                className="btn btn-secondary"
+                className="btn btn-secondary btn-sm"
                 onClick={() => setPreviewModal({ open: false, emp: null, tipo: 'aviso_17' })}
               >
                 Cancelar
               </button>
               <button
-                className="btn btn-whatsapp"
+                className="btn btn-whatsapp btn-sm"
                 onClick={() => triggerSendSingle(previewModal.emp.id, previewModal.tipo)}
               >
                 🚀 Confirmar Envio Manual
@@ -960,7 +907,7 @@ export default function ContasView({ addToast }) {
       {/* MODAL DE UPLOAD DE PDF (AVULSO) */}
       {uploadModal.open && uploadModal.emp && (
         <div className="modal-backdrop">
-          <div className="modal-content" style={{ maxWidth: '450px' }}>
+          <div className="modal-content" style={{ maxWidth: '460px' }}>
             <div className="modal-header">
               <h3>
                 📄 Upload de {uploadModal.tipoDoc === 'holerite' ? 'Holerite PDF' : 'Extrato PDF'}
@@ -974,8 +921,8 @@ export default function ContasView({ addToast }) {
             </div>
             <form onSubmit={handleUpload}>
               <div className="modal-body">
-                <p style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
-                  Selecione o arquivo PDF para <strong>{uploadModal.emp.nome}</strong>. O arquivo será salvo no Supabase Storage.
+                <p style={{ marginBottom: '1rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                  Selecione o arquivo PDF para <strong>{uploadModal.emp.nome}</strong>. O arquivo será salvo diretamente no Supabase Storage.
                 </p>
 
                 <div className="form-group">
@@ -985,110 +932,24 @@ export default function ContasView({ addToast }) {
                     accept="application/pdf"
                     onChange={(e) => setUploadFile(e.target.files[0])}
                     required
-                    style={{ width: '100%', padding: '0.5rem', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#fff' }}
+                    className="form-control"
                   />
                 </div>
               </div>
               <div className="modal-footer">
                 <button
                   type="button"
-                  className="btn btn-secondary"
+                  className="btn btn-secondary btn-sm"
                   onClick={() => setUploadModal({ open: false, emp: null, tipoDoc: 'conta' })}
                   disabled={uploading}
                 >
                   Cancelar
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={uploading}>
+                <button type="submit" className="btn btn-primary btn-sm" disabled={uploading}>
                   {uploading ? <><span className="spinner"></span> Enviando...</> : 'Enviar PDF'}
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL DE EDIÇÃO / CADASTRO */}
-      {editModal.open && (
-        <div className="modal-backdrop">
-          <div className="modal-content" style={{ maxWidth: '480px' }}>
-            <div className="modal-header">
-              <h3>{editModal.emp ? '✏️ Editar Conta / Colaborador' : '+ Novo Colaborador (Contas)'}</h3>
-              <button className="modal-close" onClick={() => setEditModal({ open: false, emp: null })}>
-                ✕
-              </button>
-            </div>
-            <div className="modal-body">
-              <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                <label>ID / Código do Cliente (Postgres/Convênio):</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Ex: 2957"
-                  value={editForm.id}
-                  disabled={!!editModal.emp}
-                  onChange={(e) => setEditForm({ ...editForm, id: e.target.value })}
-                />
-                {!editModal.emp && (
-                  <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '0.2rem', display: 'block' }}>
-                    Informe o ID do cliente cadastrado na loja (usado para vincular com os PDFs).
-                  </small>
-                )}
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                <label>Nome Completo:</label>
-
-                <input
-                  type="text"
-                  className="form-control"
-                  value={editForm.nome}
-                  onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                <label>Telefone (com DDD e 55):</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="5516999999999"
-                  value={editForm.telefone}
-                  onChange={(e) => setEditForm({ ...editForm, telefone: e.target.value })}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                <label>Loja:</label>
-                <select
-                  className="form-control"
-                  value={editForm.loja}
-                  onChange={(e) => setEditForm({ ...editForm, loja: e.target.value })}
-                >
-                  {LOJAS.filter(l => l !== 'TODAS').map(l => (
-                    <option key={l} value={l}>{l}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                <label>Valor da Conta (R$):</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="0.00"
-                  value={editForm.valorConta}
-                  onChange={(e) => setEditForm({ ...editForm, valorConta: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setEditModal({ open: false, emp: null })}>
-                Cancelar
-              </button>
-              <button className="btn btn-primary" onClick={saveEdit}>
-                Salvar Alterações
-              </button>
-            </div>
           </div>
         </div>
       )}

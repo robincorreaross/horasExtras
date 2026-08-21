@@ -14,75 +14,70 @@ export async function POST(request) {
     const formData = await request.formData();
     const file = formData.get('file');
     const funcionarioId = formData.get('funcionario_id');
-    const funcionarioNome = formData.get('funcionario_nome');
+    const funcionarioNome = formData.get('funcionario_nome') || 'Colaborador';
     const tipoDoc = formData.get('tipo_doc') || 'conta'; // 'conta' ou 'holerite'
 
-    if (!file || !(file instanceof Blob)) {
-      return NextResponse.json({ error: 'Nenhum arquivo enviado' }, { status: 400 });
+    if (!file || !funcionarioId) {
+      return NextResponse.json(
+        { success: false, error: 'Arquivo e ID do funcionário são obrigatórios' },
+        { status: 400 }
+      );
     }
 
-    if (!funcionarioId || !funcionarioNome) {
-      return NextResponse.json({ error: 'Dados do funcionário incompletos' }, { status: 400 });
-    }
-
-    // Definir bucket e caminho do arquivo
     const bucketName = tipoDoc === 'holerite' ? 'holerites' : 'conta-pdf';
-    
-    // Nome limpo sem caracteres especiais para o arquivo
-    const nomeLimpo = funcionarioNome.trim().split(' ')[0].replace(/[^a-zA-Z0-9_-]/g, '');
-    const filename = `${nomeLimpo}.pdf`;
+    const prefix = tipoDoc === 'holerite' ? 'Holerite_' : '';
+    const cleanName = funcionarioNome.trim().split(' ')[0];
+    const fileName = `${prefix}${cleanName}_${funcionarioId}.pdf`;
 
-    // Converter Blob/File em Buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    // Garantir que o bucket exista (ou tentar upload direto)
+    // 1. Upload para o Supabase Storage com overwrite
     const { error: uploadError } = await supabase.storage
       .from(bucketName)
-      .upload(filename, buffer, {
+      .upload(fileName, buffer, {
         contentType: 'application/pdf',
         upsert: true,
       });
 
     if (uploadError) {
-      // Se o bucket não existir, tentar criar o bucket ou upload com fallback
-      console.error('Erro no upload Supabase Storage:', uploadError);
+      console.error('Erro no Supabase Storage:', uploadError);
       return NextResponse.json(
-        { error: `Erro no upload para Supabase: ${uploadError.message}` },
+        { success: false, error: `Erro no upload: ${uploadError.message}` },
         { status: 500 }
       );
     }
 
-    // Obter URL pública
+    // 2. Obter URL pública
     const { data: publicUrlData } = supabase.storage
       .from(bucketName)
-      .getPublicUrl(filename);
+      .getPublicUrl(fileName);
 
     const publicUrl = publicUrlData?.publicUrl;
 
-    // Atualizar no banco postgres
+    // 3. Atualizar link na tabela colaboradores
     if (tipoDoc === 'holerite') {
       await sql`
-        UPDATE funcionarios
+        UPDATE colaboradores
         SET "holeritePDF" = ${publicUrl}
-        WHERE id = ${funcionarioId}
+        WHERE id::text = ${funcionarioId} OR id_loja::text = ${funcionarioId}
       `;
     } else {
       await sql`
-        UPDATE funcionarios
+        UPDATE colaboradores
         SET "contaPDF" = ${publicUrl}
-        WHERE id = ${funcionarioId}
+        WHERE id::text = ${funcionarioId} OR id_loja::text = ${funcionarioId}
       `;
     }
 
     return NextResponse.json({
       success: true,
       url: publicUrl,
-      tipo: tipoDoc,
-      funcionario_id: funcionarioId,
+      fileName,
+      tipoDoc,
     });
   } catch (err) {
-    console.error('Erro geral no upload API:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error('Erro na API de upload:', err);
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }

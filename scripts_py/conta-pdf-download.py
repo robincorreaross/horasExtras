@@ -102,7 +102,8 @@ def obter_mapa_funcionarios():
     try:
         conn = psycopg2.connect(**DB_SUPABASE)
         cur = conn.cursor()
-        cur.execute('SELECT id, nome FROM funcionarios;')
+        cur.execute('SELECT id_loja, nome FROM colaboradores WHERE id_loja IS NOT NULL;')
+
         rows = cur.fetchall()
         cur.close()
         conn.close()

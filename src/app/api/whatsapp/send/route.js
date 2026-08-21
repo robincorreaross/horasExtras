@@ -3,7 +3,7 @@ import { checkConnection, sendTextMessage } from '@/lib/evolution';
 import { buildMessage } from '@/lib/messages';
 import { NextResponse } from 'next/server';
 
-// POST /api/whatsapp/send - Enviar mensagem para um funcionário
+// POST /api/whatsapp/send - Enviar extrato de horas via WhatsApp para um colaborador
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -19,14 +19,19 @@ export async function POST(request) {
       );
     }
 
-    // 2. Buscar funcionário
+    // 2. Buscar colaborador
     const employees = await sql`
-      SELECT * FROM funcionarios_he WHERE id = ${funcionario_id}
+      SELECT * FROM colaboradores 
+      WHERE id::text = ${funcionario_id} OR id_loja::text = ${funcionario_id}
     `;
     if (employees.length === 0) {
-      return NextResponse.json({ success: false, error: 'Funcionário não encontrado' }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Colaborador não encontrado' }, { status: 404 });
     }
     const emp = employees[0];
+
+    if (!emp.telefone) {
+      return NextResponse.json({ success: false, error: `Colaborador ${emp.nome} não possui telefone cadastrado` }, { status: 400 });
+    }
 
     // 3. Calcular saldo anterior (tudo ANTES do mês de referência)
     const refStart = `${ref_year}-${String(ref_month + 1).padStart(2, '0')}-01`;
@@ -34,10 +39,10 @@ export async function POST(request) {
     const prevResult = await sql`
       SELECT COALESCE(SUM(horas_debito_credito), 0) as total
       FROM movimentacoes_he
-      WHERE funcionario_id = ${funcionario_id}
+      WHERE funcionario_id = ${emp.id}
         AND data_registro < ${refStart}
     `;
-    const previousBalance = parseFloat(emp.saldo_inicial) + parseFloat(prevResult[0].total);
+    const previousBalance = parseFloat(emp.saldo_inicial || 0) + parseFloat(prevResult[0].total);
 
     // 4. Buscar movimentações do mês de referência
     const lastDay = new Date(ref_year, ref_month + 1, 0).getDate();
@@ -45,7 +50,7 @@ export async function POST(request) {
 
     const movements = await sql`
       SELECT * FROM movimentacoes_he
-      WHERE funcionario_id = ${funcionario_id}
+      WHERE funcionario_id = ${emp.id}
         AND data_registro >= ${refStart}
         AND data_registro <= ${refEnd}
       ORDER BY data_registro ASC

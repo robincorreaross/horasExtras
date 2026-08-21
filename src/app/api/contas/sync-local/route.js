@@ -15,7 +15,7 @@ const DIR_CONTAS = `D:\\work-Ross\\Administrativo\\Docs Colaboradores\\enviarExt
 const DIR_HOLERITES = `D:\\work-Ross\\Administrativo\\Docs Colaboradores\\enviarExtrato\\holerites`;
 
 /**
- * Tenta encontrar o funcionário correspondente ao nome do arquivo PDF.
+ * Tenta encontrar o colaborador correspondente ao nome do arquivo PDF.
  * Suporta formatos: "ID_Nome.pdf" (ex: 2957_Raissa.pdf), "ID-Nome.pdf", "ID.pdf" ou "Nome.pdf"
  */
 function findMatchingEmployee(pdfNameClean, employees) {
@@ -25,9 +25,9 @@ function findMatchingEmployee(pdfNameClean, employees) {
   const idMatch = targetName.match(/^(\d+)(?:[_\s-]|$)|(?:[_\s-]|^)(\d+)$/);
   if (idMatch) {
     const extractedId = idMatch[1] || idMatch[2];
-    const matchById = employees.find(e => String(e.id) === String(extractedId));
+    const matchById = employees.find(e => String(e.id_loja) === String(extractedId));
     if (matchById) {
-      return matchById; // Match 100% garantido pelo ID único!
+      return matchById; // Match 100% garantido pelo ID da loja!
     }
   }
 
@@ -59,14 +59,13 @@ function findMatchingEmployee(pdfNameClean, employees) {
   return null;
 }
 
-
 export async function POST(request) {
   try {
     const body = await request.json();
     const tipoSync = body.tipo || 'todos'; // 'contas', 'holerites', 'todos'
 
-    // Buscar todos os funcionários da tabela
-    const employees = await sql`SELECT id, nome FROM funcionarios`;
+    // Buscar todos os colaboradores da tabela unificada
+    const employees = await sql`SELECT id, id_loja, nome FROM colaboradores`;
 
     const logs = [];
     let contasSuccess = 0;
@@ -90,7 +89,8 @@ export async function POST(request) {
 
           try {
             const buffer = fs.readFileSync(filePath);
-            const filenameInBucket = `${matchedEmp.nome.trim().split(' ')[0]}_${matchedEmp.id}.pdf`;
+            const refCode = matchedEmp.id_loja || matchedEmp.nome.trim().split(' ')[0];
+            const filenameInBucket = `${matchedEmp.nome.trim().split(' ')[0]}_${refCode}.pdf`;
 
             const { error: uploadError } = await supabase.storage
               .from('conta-pdf')
@@ -111,7 +111,7 @@ export async function POST(request) {
             const publicUrl = publicUrlData?.publicUrl;
 
             await sql`
-              UPDATE funcionarios
+              UPDATE colaboradores
               SET "contaPDF" = ${publicUrl}
               WHERE id = ${matchedEmp.id}
             `;
@@ -145,7 +145,8 @@ export async function POST(request) {
 
           try {
             const buffer = fs.readFileSync(filePath);
-            const filenameInBucket = `Holerite_${matchedEmp.nome.trim().split(' ')[0]}_${matchedEmp.id}.pdf`;
+            const refCode = matchedEmp.id_loja || matchedEmp.nome.trim().split(' ')[0];
+            const filenameInBucket = `Holerite_${matchedEmp.nome.trim().split(' ')[0]}_${refCode}.pdf`;
 
             const { error: uploadError } = await supabase.storage
               .from('holerites')
@@ -166,7 +167,7 @@ export async function POST(request) {
             const publicUrl = publicUrlData?.publicUrl;
 
             await sql`
-              UPDATE funcionarios
+              UPDATE colaboradores
               SET "holeritePDF" = ${publicUrl}
               WHERE id = ${matchedEmp.id}
             `;

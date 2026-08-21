@@ -5,7 +5,6 @@ import { NextResponse } from 'next/server';
 // POST /api/cron/lembrete-whatsapp
 export async function POST(request) {
     // 1. Segurança: Evita que qualquer pessoa aceda a esta URL e dispare mensagens.
-    // O Supabase enviará este cabeçalho de Autorização.
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
         return new Response('Não autorizado', { status: 401 });
@@ -21,21 +20,30 @@ export async function POST(request) {
             );
         }
 
-        // 3. Buscar apenas os funcionários ativos
+        // 3. Buscar colaboradores ativos, EXCLUINDO colaboradores terceirizados
         const funcionarios = await sql`
-      SELECT id, nome, telefone FROM funcionarios_he WHERE ativo = true
-    `;
+            SELECT id, nome, telefone, loja 
+            FROM colaboradores 
+            WHERE ativo = true 
+              AND (loja IS NULL OR (loja != 'Terceirizado' AND loja NOT ILIKE '%terceirizado%'))
+            ORDER BY nome ASC
+        `;
 
         if (funcionarios.length === 0) {
-            return NextResponse.json({ message: 'Nenhum funcionário ativo encontrado para enviar lembrete.' });
+            return NextResponse.json({ message: 'Nenhum colaborador ativo (não terceirizado) encontrado para enviar lembrete.' });
         }
 
         const resultados = [];
 
-        // 4. Loop de envio com intervalo para evitar bloqueios por spam no WhatsApp
+        // 4. Loop de envio com intervalo de 5s para evitar bloqueios no WhatsApp
         for (let i = 0; i < funcionarios.length; i++) {
             const func = funcionarios[i];
-            // Pode personalizar esta mensagem como preferir
+            
+            if (!func.telefone) {
+                resultados.push({ nome: func.nome, status: 'pulado', erro: 'Sem telefone' });
+                continue;
+            }
+
             const mensagem = `*🤖 Disparo Automático 🤖*
 
 *🌞 Bom dia! ☕✨*

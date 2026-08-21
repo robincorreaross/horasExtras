@@ -1,0 +1,212 @@
+[
+  {
+    "id": "8f5e49e9-0a5a-44cf-966b-3904249b4b9c",
+    "nome": "Ana Maria",
+    "telefone": "5516991080765",
+    "cargo": "L2 - Atendente de Farmácia",
+    "data_admissao": "2006-02-01T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-04-11T13:16:01.436Z"
+  },
+  {
+    "id": "89cf5f74-c22c-4495-83d5-b2e29cda0df2",
+    "nome": "Ananda",
+    "telefone": "5516991270056",
+    "cargo": "L1 - Farmacêutica",
+    "data_admissao": "2011-01-03T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-04-11T13:27:17.695Z"
+  },
+  {
+    "id": "5da93a61-699e-45a4-a235-9e72ee6fc3d9",
+    "nome": "Elaine",
+    "telefone": "5516992160448",
+    "cargo": "L1 - Atendente de Farmácia",
+    "data_admissao": "2015-08-01T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "-16.00",
+    "criado_em": "2026-04-06T15:00:41.831Z"
+  },
+  {
+    "id": "37e61592-f185-4fb6-abae-5fc3c6047723",
+    "nome": "Evelyn",
+    "telefone": "5516993459923",
+    "cargo": "L1 - Auxiliar de Farmácia de Manipulação",
+    "data_admissao": "2025-01-16T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-04-11T13:29:02.541Z"
+  },
+  {
+    "id": "eec113f9-676c-4c8e-9422-5d793d31bfc0",
+    "nome": "Fernanda",
+    "telefone": "5516994187951",
+    "cargo": "L1 - Atendente de Farmácia",
+    "data_admissao": "2023-08-05T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "-23.00",
+    "criado_em": "2026-04-06T19:38:40.981Z"
+  },
+  {
+    "id": "801c3e3c-12ae-40bb-a29c-0b65214b8792",
+    "nome": "Gabriela",
+    "telefone": "5516993915198",
+    "cargo": "L1 - Auxiliar de Farmácia de Manipulação",
+    "data_admissao": "2018-03-01T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-04-11T13:28:11.633Z"
+  },
+  {
+    "id": "1918b7f9-6f79-46d3-9fea-2acbaf7beb26",
+    "nome": "Gabriela",
+    "telefone": "5516993504447",
+    "cargo": "L2 - Atendente de Farmácia ",
+    "data_admissao": "2024-09-02T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-04-11T13:14:40.582Z"
+  },
+  {
+    "id": "a97204de-a864-41aa-af43-3f45aa473a3c",
+    "nome": "Giovanna",
+    "telefone": "5516992957830",
+    "cargo": "Loja 1 - Atendente de Farmácia",
+    "data_admissao": "2026-08-04T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-08-04T19:54:13.891Z"
+  },
+  {
+    "id": "2268df6e-c263-4348-b13c-eb4dbc952113",
+    "nome": "Isabela",
+    "telefone": "5516991903323",
+    "cargo": "L1 - Atendente de Farmácia",
+    "data_admissao": "2024-01-26T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "-16.00",
+    "criado_em": "2026-04-06T19:32:09.687Z"
+  },
+  {
+    "id": "d45b9757-d42f-442d-9d4a-b41a52c72638",
+    "nome": "Isaque",
+    "telefone": "5516992322817",
+    "cargo": "L1 - Motoqueiro",
+    "data_admissao": "2014-10-22T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-04-11T13:17:23.588Z"
+  },
+  {
+    "id": "a48c5365-3dac-47f4-8a12-88a944a91124",
+    "nome": "Ligia",
+    "telefone": "5516992511148",
+    "cargo": "L3 - Atendente de Farmácia",
+    "data_admissao": "2014-07-01T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-04-11T13:18:38.292Z"
+  },
+  {
+    "id": "74bcf1e5-6603-49e5-9ca3-eacd7e0f4b8c",
+    "nome": "Lilian",
+    "telefone": "5516993633755",
+    "cargo": "L3 - Auxiliar de Limpeza",
+    "data_admissao": "2025-09-01T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-04-11T13:23:18.580Z"
+  },
+  {
+    "id": "2fadd82c-5aee-4299-85cd-f7e02f542374",
+    "nome": "Maria Cecilia",
+    "telefone": "5516994123591",
+    "cargo": "L1 - Atendente de Farmácia",
+    "data_admissao": "2023-07-20T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "-14.00",
+    "criado_em": "2026-04-06T15:05:09.669Z"
+  },
+  {
+    "id": "9d893eb6-4b75-41a4-9330-2fa8f3046a2e",
+    "nome": "Mayra",
+    "telefone": "5516993158550",
+    "cargo": "L1 - Atendente de Farmácia",
+    "data_admissao": "2025-01-15T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "-19.00",
+    "criado_em": "2026-04-06T19:33:44.630Z"
+  },
+  {
+    "id": "896cfada-1dfa-4b05-ad7e-b090f580dd60",
+    "nome": "Meirieli",
+    "telefone": "5516993387789",
+    "cargo": "L1 - Auxiliar de Farmácia de Manipulação",
+    "data_admissao": "2020-09-11T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-04-11T13:30:04.108Z"
+  },
+  {
+    "id": "0ac5b6fe-1555-4402-a514-bcac3d50e247",
+    "nome": "Patricia",
+    "telefone": "5516991410636",
+    "cargo": "L2 - Atendente de Farmácia",
+    "data_admissao": "2025-04-01T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-04-11T13:22:17.485Z"
+  },
+  {
+    "id": "126f6e32-87a3-4e5f-831c-4a2bea6dc940",
+    "nome": "Rafaela",
+    "telefone": "5516994436620",
+    "cargo": "L1 - Menor Aprendiz",
+    "data_admissao": "2001-01-01T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-04-06T19:34:19.599Z"
+  },
+  {
+    "id": "16d31da6-8135-4ac5-a5b6-7100ee6b8f32",
+    "nome": "Raissa",
+    "telefone": "5516993372111",
+    "cargo": "L2 - Atendente de Farmácia",
+    "data_admissao": "2024-09-02T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-04-11T13:21:15.336Z"
+  },
+  {
+    "id": "d83c98c7-5a1b-40b5-8f35-1eb364e0bbfc",
+    "nome": "Robinson",
+    "telefone": "5516991080895",
+    "cargo": "L1 - Farmacêutico",
+    "data_admissao": "2006-08-01T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-04-06T15:02:22.130Z"
+  },
+  {
+    "id": "f8a42282-f0cf-4d31-aaad-ee62ed2b1bc0",
+    "nome": "Silvia",
+    "telefone": "5516992025825",
+    "cargo": "L3 - Atendente de Farmácia",
+    "data_admissao": "2020-09-01T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-04-11T13:20:12.388Z"
+  },
+  {
+    "id": "518d3dc6-d159-4eac-9a37-4da03b48863a",
+    "nome": "Thais",
+    "telefone": "5516993043371",
+    "cargo": "L1 - Auxiliar de Farmácia de Manipulação",
+    "data_admissao": "2025-11-03T00:00:00.000Z",
+    "ativo": true,
+    "saldo_inicial": "0.00",
+    "criado_em": "2026-04-11T13:30:50.854Z"
+  }
+]

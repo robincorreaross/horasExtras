@@ -1,0 +1,410 @@
+[
+  {
+    "id": "126a7a3d-aab6-4ff0-9a49-beec8a5875ce",
+    "funcionario_id": "eec113f9-676c-4c8e-9422-5d793d31bfc0",
+    "data_registro": "2026-04-03T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-04-28T11:46:42.452Z"
+  },
+  {
+    "id": "3a6549a2-0cda-4141-9465-4aea0873c535",
+    "funcionario_id": "d45b9757-d42f-442d-9d4a-b41a52c72638",
+    "data_registro": "2026-04-03T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-05-02T16:10:58.545Z"
+  },
+  {
+    "id": "d4116d75-a4e1-40b3-b808-8bc563e7b6c8",
+    "funcionario_id": "5da93a61-699e-45a4-a235-9e72ee6fc3d9",
+    "data_registro": "2026-04-03T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-04-28T16:15:34.965Z"
+  },
+  {
+    "id": "6da34eb1-ca2d-4463-bb00-3fa5bf5e383f",
+    "funcionario_id": "2fadd82c-5aee-4299-85cd-f7e02f542374",
+    "data_registro": "2026-04-21T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-04-28T13:56:21.447Z"
+  },
+  {
+    "id": "6dab34cb-4695-4153-a974-62e10bfa1415",
+    "funcionario_id": "eec113f9-676c-4c8e-9422-5d793d31bfc0",
+    "data_registro": "2026-04-21T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-04-28T11:46:53.553Z"
+  },
+  {
+    "id": "8f863474-472a-416e-8a7f-41531a2aa7b8",
+    "funcionario_id": "2268df6e-c263-4348-b13c-eb4dbc952113",
+    "data_registro": "2026-04-21T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-04-28T11:50:39.109Z"
+  },
+  {
+    "id": "400f657d-0a35-47d1-ada0-e81b8dbf2c09",
+    "funcionario_id": "9d893eb6-4b75-41a4-9330-2fa8f3046a2e",
+    "data_registro": "2026-04-21T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-04-28T13:55:36.117Z"
+  },
+  {
+    "id": "81056792-1d77-4318-ba8d-43e5cf15ec14",
+    "funcionario_id": "5da93a61-699e-45a4-a235-9e72ee6fc3d9",
+    "data_registro": "2026-04-21T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-04-28T16:15:47.780Z"
+  },
+  {
+    "id": "f0d37efc-79e4-4cf5-9f52-8e3be5d7482e",
+    "funcionario_id": "d45b9757-d42f-442d-9d4a-b41a52c72638",
+    "data_registro": "2026-04-21T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-05-02T16:11:13.285Z"
+  },
+  {
+    "id": "f8cb06ac-cb59-40aa-bbbd-e8dc6cfa8fd9",
+    "funcionario_id": "eec113f9-676c-4c8e-9422-5d793d31bfc0",
+    "data_registro": "2026-04-30T00:00:00.000Z",
+    "tipo": "domingo_menos_1",
+    "horas_debito_credito": "-4.00",
+    "criado_em": "2026-04-28T16:11:31.482Z"
+  },
+  {
+    "id": "1e4878dc-449e-4ed6-8156-03c81e4c743a",
+    "funcionario_id": "5da93a61-699e-45a4-a235-9e72ee6fc3d9",
+    "data_registro": "2026-04-30T00:00:00.000Z",
+    "tipo": "domingo_menos_1",
+    "horas_debito_credito": "-4.00",
+    "criado_em": "2026-04-28T16:09:53.895Z"
+  },
+  {
+    "id": "5ff5ba59-a713-4758-b620-089662b0ba2e",
+    "funcionario_id": "2268df6e-c263-4348-b13c-eb4dbc952113",
+    "data_registro": "2026-04-30T00:00:00.000Z",
+    "tipo": "domingo_menos_1",
+    "horas_debito_credito": "-4.00",
+    "criado_em": "2026-04-28T16:12:23.466Z"
+  },
+  {
+    "id": "870bc6ab-ae02-46df-8404-fd341e0c3ba2",
+    "funcionario_id": "2fadd82c-5aee-4299-85cd-f7e02f542374",
+    "data_registro": "2026-04-30T00:00:00.000Z",
+    "tipo": "domingo_menos_1",
+    "horas_debito_credito": "-4.00",
+    "criado_em": "2026-04-28T16:12:59.954Z"
+  },
+  {
+    "id": "13e5d168-3a1d-4ee1-9a85-6f9c9cfdc569",
+    "funcionario_id": "2fadd82c-5aee-4299-85cd-f7e02f542374",
+    "data_registro": "2026-05-01T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-05-29T11:57:02.992Z"
+  },
+  {
+    "id": "a0fe1bef-6123-44d4-bfa8-8cf0db8a910f",
+    "funcionario_id": "5da93a61-699e-45a4-a235-9e72ee6fc3d9",
+    "data_registro": "2026-05-01T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-05-28T11:17:51.026Z"
+  },
+  {
+    "id": "5e3666c2-c87f-4dfe-9637-5b2907c0f196",
+    "funcionario_id": "d45b9757-d42f-442d-9d4a-b41a52c72638",
+    "data_registro": "2026-05-01T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "10.00",
+    "criado_em": "2026-05-28T11:18:20.794Z"
+  },
+  {
+    "id": "02548bb9-b94a-41f6-aa35-7efb987ab379",
+    "funcionario_id": "d45b9757-d42f-442d-9d4a-b41a52c72638",
+    "data_registro": "2026-05-01T00:00:00.000Z",
+    "tipo": "pagamento_horas",
+    "horas_debito_credito": "-12.00",
+    "criado_em": "2026-05-02T16:26:16.289Z"
+  },
+  {
+    "id": "d072d9f4-4b72-468d-8d43-bce0a5221288",
+    "funcionario_id": "2268df6e-c263-4348-b13c-eb4dbc952113",
+    "data_registro": "2026-05-01T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-05-28T11:17:25.991Z"
+  },
+  {
+    "id": "274f8112-a86a-4451-bb99-13b60bb5abb7",
+    "funcionario_id": "9d893eb6-4b75-41a4-9330-2fa8f3046a2e",
+    "data_registro": "2026-05-02T00:00:00.000Z",
+    "tipo": "falta",
+    "horas_debito_credito": "-7.00",
+    "criado_em": "2026-05-06T18:03:33.073Z"
+  },
+  {
+    "id": "a9fa89ae-1ebc-482d-ada8-4e7c08bbcc44",
+    "funcionario_id": "2268df6e-c263-4348-b13c-eb4dbc952113",
+    "data_registro": "2026-05-24T00:00:00.000Z",
+    "tipo": "domingo_menos_1",
+    "horas_debito_credito": "-4.00",
+    "criado_em": "2026-05-28T11:16:45.995Z"
+  },
+  {
+    "id": "54ed82be-6267-4a53-8705-5372c0f7956b",
+    "funcionario_id": "2fadd82c-5aee-4299-85cd-f7e02f542374",
+    "data_registro": "2026-05-27T00:00:00.000Z",
+    "tipo": "extra_50",
+    "horas_debito_credito": "1.00",
+    "criado_em": "2026-05-29T11:56:43.866Z"
+  },
+  {
+    "id": "42b91d2b-5aa6-47df-80b3-b116760b46a4",
+    "funcionario_id": "2fadd82c-5aee-4299-85cd-f7e02f542374",
+    "data_registro": "2026-05-30T00:00:00.000Z",
+    "tipo": "falta",
+    "horas_debito_credito": "-7.00",
+    "criado_em": "2026-05-29T11:55:31.733Z"
+  },
+  {
+    "id": "a0a4a915-380e-4f39-b495-8a428c6ace0d",
+    "funcionario_id": "d45b9757-d42f-442d-9d4a-b41a52c72638",
+    "data_registro": "2026-06-01T00:00:00.000Z",
+    "tipo": "pagamento_horas",
+    "horas_debito_credito": "-10.00",
+    "criado_em": "2026-06-01T14:43:43.974Z"
+  },
+  {
+    "id": "43c3b198-0761-4194-9676-3d1b07b04749",
+    "funcionario_id": "2fadd82c-5aee-4299-85cd-f7e02f542374",
+    "data_registro": "2026-06-13T00:00:00.000Z",
+    "tipo": "falta",
+    "horas_debito_credito": "-3.00",
+    "criado_em": "2026-06-15T10:29:27.032Z"
+  },
+  {
+    "id": "94ede925-34c4-4b69-b510-7474866f8dca",
+    "funcionario_id": "9d893eb6-4b75-41a4-9330-2fa8f3046a2e",
+    "data_registro": "2026-06-13T00:00:00.000Z",
+    "tipo": "falta",
+    "horas_debito_credito": "-3.00",
+    "criado_em": "2026-06-15T10:29:04.008Z"
+  },
+  {
+    "id": "f81bce7f-e4d5-401e-9026-3db1d2b76b58",
+    "funcionario_id": "9d893eb6-4b75-41a4-9330-2fa8f3046a2e",
+    "data_registro": "2026-06-16T00:00:00.000Z",
+    "tipo": "extra_50",
+    "horas_debito_credito": "4.00",
+    "criado_em": "2026-06-27T12:11:54.494Z"
+  },
+  {
+    "id": "cfbc7ef9-b29d-4fd5-8f7d-1afc560f2d0f",
+    "funcionario_id": "9d893eb6-4b75-41a4-9330-2fa8f3046a2e",
+    "data_registro": "2026-06-19T00:00:00.000Z",
+    "tipo": "falta",
+    "horas_debito_credito": "-1.00",
+    "criado_em": "2026-06-19T17:17:37.176Z"
+  },
+  {
+    "id": "068967e2-9996-4797-a08a-43611ce80a4b",
+    "funcionario_id": "2fadd82c-5aee-4299-85cd-f7e02f542374",
+    "data_registro": "2026-06-19T00:00:00.000Z",
+    "tipo": "falta",
+    "horas_debito_credito": "-1.00",
+    "criado_em": "2026-06-19T17:18:22.206Z"
+  },
+  {
+    "id": "6270f8e4-6b63-4cd5-b8c3-b73e1268c119",
+    "funcionario_id": "9d893eb6-4b75-41a4-9330-2fa8f3046a2e",
+    "data_registro": "2026-06-24T00:00:00.000Z",
+    "tipo": "falta",
+    "horas_debito_credito": "-3.00",
+    "criado_em": "2026-06-25T11:21:55.486Z"
+  },
+  {
+    "id": "0bf133fc-8e77-41a7-b520-a5a5351a197a",
+    "funcionario_id": "2fadd82c-5aee-4299-85cd-f7e02f542374",
+    "data_registro": "2026-06-27T00:00:00.000Z",
+    "tipo": "extra_50",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-06-27T12:26:40.477Z"
+  },
+  {
+    "id": "71ae10d1-7898-464d-a15f-8f3e1e88831a",
+    "funcionario_id": "2fadd82c-5aee-4299-85cd-f7e02f542374",
+    "data_registro": "2026-06-27T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "7.00",
+    "criado_em": "2026-06-27T12:26:57.289Z"
+  },
+  {
+    "id": "2fc459f1-6211-42d9-b4de-027319fb2dd8",
+    "funcionario_id": "eec113f9-676c-4c8e-9422-5d793d31bfc0",
+    "data_registro": "2026-06-27T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-06-27T12:27:28.136Z"
+  },
+  {
+    "id": "5fbf8596-6264-4f01-adb9-620680f5588e",
+    "funcionario_id": "eec113f9-676c-4c8e-9422-5d793d31bfc0",
+    "data_registro": "2026-06-28T00:00:00.000Z",
+    "tipo": "domingo_menos_1",
+    "horas_debito_credito": "-4.00",
+    "criado_em": "2026-06-25T11:24:32.682Z"
+  },
+  {
+    "id": "e696796e-7120-4b96-b0db-056ded01fd04",
+    "funcionario_id": "5da93a61-699e-45a4-a235-9e72ee6fc3d9",
+    "data_registro": "2026-06-28T00:00:00.000Z",
+    "tipo": "domingo_menos_1",
+    "horas_debito_credito": "-4.00",
+    "criado_em": "2026-06-25T11:24:17.141Z"
+  },
+  {
+    "id": "07d4570a-7800-4f53-afc1-1009030ce70e",
+    "funcionario_id": "2fadd82c-5aee-4299-85cd-f7e02f542374",
+    "data_registro": "2026-06-28T00:00:00.000Z",
+    "tipo": "domingo_menos_1",
+    "horas_debito_credito": "-4.00",
+    "criado_em": "2026-06-25T11:24:45.504Z"
+  },
+  {
+    "id": "c53e7d7b-0e1f-4090-a1a7-054086a3abaa",
+    "funcionario_id": "9d893eb6-4b75-41a4-9330-2fa8f3046a2e",
+    "data_registro": "2026-06-29T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-06-27T13:07:04.840Z"
+  },
+  {
+    "id": "e6f8944e-5d9a-4a2c-803c-dadd04c4a94c",
+    "funcionario_id": "d45b9757-d42f-442d-9d4a-b41a52c72638",
+    "data_registro": "2026-06-30T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-06-27T11:30:15.085Z"
+  },
+  {
+    "id": "4e19ef4c-b2e4-46bf-a865-41cb913f2403",
+    "funcionario_id": "d45b9757-d42f-442d-9d4a-b41a52c72638",
+    "data_registro": "2026-07-01T00:00:00.000Z",
+    "tipo": "pagamento_horas",
+    "horas_debito_credito": "-6.00",
+    "criado_em": "2026-06-30T14:20:24.517Z"
+  },
+  {
+    "id": "3b7d476a-ba7c-439d-84fc-3ba026557d2b",
+    "funcionario_id": "d45b9757-d42f-442d-9d4a-b41a52c72638",
+    "data_registro": "2026-07-28T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "12.00",
+    "criado_em": "2026-07-28T10:04:28.239Z"
+  },
+  {
+    "id": "17c308e3-9a4b-422c-aa9b-202afb3bca21",
+    "funcionario_id": "2268df6e-c263-4348-b13c-eb4dbc952113",
+    "data_registro": "2026-07-28T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "12.00",
+    "criado_em": "2026-07-28T10:04:15.094Z"
+  },
+  {
+    "id": "c4db1496-2bb3-4786-b301-4f8d88dba742",
+    "funcionario_id": "eec113f9-676c-4c8e-9422-5d793d31bfc0",
+    "data_registro": "2026-07-28T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-07-28T10:05:10.210Z"
+  },
+  {
+    "id": "7f7670fe-5e71-477d-a5c5-7bba4f977707",
+    "funcionario_id": "2fadd82c-5aee-4299-85cd-f7e02f542374",
+    "data_registro": "2026-07-28T00:00:00.000Z",
+    "tipo": "extra_50",
+    "horas_debito_credito": "9.00",
+    "criado_em": "2026-07-28T10:05:29.963Z"
+  },
+  {
+    "id": "c8c6c43e-b8aa-4ca5-a3a1-91237b5d2468",
+    "funcionario_id": "2fadd82c-5aee-4299-85cd-f7e02f542374",
+    "data_registro": "2026-07-28T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "13.00",
+    "criado_em": "2026-07-28T10:05:46.169Z"
+  },
+  {
+    "id": "1f9ddb96-0d74-4690-9414-ac64a3388949",
+    "funcionario_id": "5da93a61-699e-45a4-a235-9e72ee6fc3d9",
+    "data_registro": "2026-07-28T00:00:00.000Z",
+    "tipo": "domingo_menos_1",
+    "horas_debito_credito": "-4.00",
+    "criado_em": "2026-07-28T11:46:15.623Z"
+  },
+  {
+    "id": "1c6cea7d-6f43-4db8-a590-2cd21a745774",
+    "funcionario_id": "2fadd82c-5aee-4299-85cd-f7e02f542374",
+    "data_registro": "2026-07-28T00:00:00.000Z",
+    "tipo": "domingo_menos_1",
+    "horas_debito_credito": "-4.00",
+    "criado_em": "2026-07-28T11:46:34.988Z"
+  },
+  {
+    "id": "4fd6fdf2-fc08-47a0-a642-19d3f8f53f54",
+    "funcionario_id": "9d893eb6-4b75-41a4-9330-2fa8f3046a2e",
+    "data_registro": "2026-07-28T00:00:00.000Z",
+    "tipo": "domingo_menos_1",
+    "horas_debito_credito": "-4.00",
+    "criado_em": "2026-07-28T11:46:51.893Z"
+  },
+  {
+    "id": "f0896494-22f5-4d60-9f57-ec092504b127",
+    "funcionario_id": "5da93a61-699e-45a4-a235-9e72ee6fc3d9",
+    "data_registro": "2026-07-28T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "12.00",
+    "criado_em": "2026-07-28T18:02:51.942Z"
+  },
+  {
+    "id": "8d7875c2-8d46-475e-b178-7107723afb2f",
+    "funcionario_id": "9d893eb6-4b75-41a4-9330-2fa8f3046a2e",
+    "data_registro": "2026-07-28T00:00:00.000Z",
+    "tipo": "extra_100",
+    "horas_debito_credito": "6.00",
+    "criado_em": "2026-07-28T18:04:56.343Z"
+  },
+  {
+    "id": "027d9e85-5052-42dc-bdb1-e30f1cebd9b4",
+    "funcionario_id": "5da93a61-699e-45a4-a235-9e72ee6fc3d9",
+    "data_registro": "2026-08-01T00:00:00.000Z",
+    "tipo": "pagamento_horas",
+    "horas_debito_credito": "-2.00",
+    "criado_em": "2026-07-28T18:07:09.707Z"
+  },
+  {
+    "id": "761ccedd-477b-49a8-8245-9cf35747517d",
+    "funcionario_id": "d45b9757-d42f-442d-9d4a-b41a52c72638",
+    "data_registro": "2026-08-01T00:00:00.000Z",
+    "tipo": "pagamento_horas",
+    "horas_debito_credito": "-12.00",
+    "criado_em": "2026-07-28T13:44:33.343Z"
+  },
+  {
+    "id": "72bda93d-610f-410b-ba19-003c0edd7986",
+    "funcionario_id": "2fadd82c-5aee-4299-85cd-f7e02f542374",
+    "data_registro": "2026-08-01T00:00:00.000Z",
+    "tipo": "pagamento_horas",
+    "horas_debito_credito": "-11.00",
+    "criado_em": "2026-07-28T13:44:55.725Z"
+  }
+]

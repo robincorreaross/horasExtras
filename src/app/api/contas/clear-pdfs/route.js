@@ -1,7 +1,7 @@
 import sql from '@/lib/db';
 import { NextResponse } from 'next/server';
 
-// POST /api/contas/clear-pdfs - Limpar URLs dos PDFs no banco de dados
+// POST /api/contas/clear-pdfs - Limpar URLs dos PDFs no banco de dados (tabela colaboradores)
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -14,19 +14,19 @@ export async function POST(request) {
     let result;
     if (tipo === 'contas') {
       result = await sql`
-        UPDATE funcionarios
+        UPDATE colaboradores
         SET "contaPDF" = NULL
         RETURNING id
       `;
     } else if (tipo === 'holerites') {
       result = await sql`
-        UPDATE funcionarios
+        UPDATE colaboradores
         SET "holeritePDF" = NULL
         RETURNING id
       `;
     } else if (tipo === 'todos') {
       result = await sql`
-        UPDATE funcionarios
+        UPDATE colaboradores
         SET "contaPDF" = NULL, "holeritePDF" = NULL
         RETURNING id
       `;

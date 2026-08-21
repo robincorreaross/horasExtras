@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-08-21T19:36:43.027Z",
+  "git_tag": "RESTAURACAO-PRE-UNIFICACAO",
+  "counts": {
+    "funcionarios_he": 21,
+    "funcionarios": 24,
+    "movimentacoes_he": 51
+  },
+  "instructions": "Para restaurar: git checkout RESTAURACAO-PRE-UNIFICACAO && execute o script de restauração SQL."
+}
