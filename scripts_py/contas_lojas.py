@@ -276,6 +276,4 @@ if __name__ == "__main__":
         msg = montar_mensagem(df_final, data_fechamento)
         print("\n--- Mensagem ---\n")
         print(msg)
-        
-    # Executa a rotina de upload dos PDFs
-    upload_pdfs_supabase()
+        print("\n✅ Atualização de valores concluída no Supabase com sucesso!")

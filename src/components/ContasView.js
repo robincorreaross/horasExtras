@@ -979,6 +979,25 @@ export default function ContasView({ addToast, onOpenColabModal }) {
                     </button>
                   </div>
 
+                  {/* Card Upload PDFs */}
+                  <div style={{ background: 'var(--bg-subtle, rgba(255,255,255,0.03))', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '0.9rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#38bdf8', marginBottom: '0.25rem' }}>
+                        📤 Apenas Subir PDFs Locais
+                      </div>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+                        Envia os PDFs de contas e holerites locais para o Supabase Storage.
+                      </p>
+                    </div>
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      style={{ marginTop: '0.75rem', width: '100%', justifyContent: 'center' }}
+                      onClick={() => handleDownloadScript('bat_upload')}
+                    >
+                      📥 Baixar Subir_PDFs.bat
+                    </button>
+                  </div>
+
                   {/* Card Scripts Python Puros */}
                   <div style={{ background: 'var(--bg-subtle, rgba(255,255,255,0.03))', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '0.9rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div>
@@ -989,20 +1008,27 @@ export default function ContasView({ addToast, onOpenColabModal }) {
                         Código fonte dos scripts para quem roda direto pelo terminal.
                       </p>
                     </div>
-                    <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.75rem' }}>
+                    <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
                       <button
                         className="btn btn-secondary btn-sm"
-                        style={{ flex: 1, justifyContent: 'center', fontSize: '0.75rem' }}
+                        style={{ flex: 1, minWidth: '85px', justifyContent: 'center', fontSize: '0.72rem', padding: '0.3rem 0.4rem' }}
                         onClick={() => handleDownloadScript('contas_lojas')}
                       >
-                        contas_lojas.py
+                        contas.py
                       </button>
                       <button
                         className="btn btn-secondary btn-sm"
-                        style={{ flex: 1, justifyContent: 'center', fontSize: '0.75rem' }}
+                        style={{ flex: 1, minWidth: '85px', justifyContent: 'center', fontSize: '0.72rem', padding: '0.3rem 0.4rem' }}
                         onClick={() => handleDownloadScript('conta_pdf_download')}
                       >
-                        download_pdf.py
+                        download.py
+                      </button>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        style={{ flex: 1, minWidth: '85px', justifyContent: 'center', fontSize: '0.72rem', padding: '0.3rem 0.4rem' }}
+                        onClick={() => handleDownloadScript('upload_pdfs')}
+                      >
+                        upload.py
                       </button>
                     </div>
                   </div>
