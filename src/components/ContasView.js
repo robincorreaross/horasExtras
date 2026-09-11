@@ -39,6 +39,12 @@ export default function ContasView({ addToast, onOpenColabModal }) {
   // Python Script Runner Modal State
   const [scriptModal, setScriptModal] = useState({ open: false, running: false, title: '', output: '' });
 
+  // Script Download & Local Sync Modal State
+  const [downloadModal, setDownloadModal] = useState(false);
+
+  // Check if running on cloud / online vs local
+  const isOnline = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+
   // Bulk Manual Send States
   const [bulkState, setBulkState] = useState({
     active: false,
@@ -106,8 +112,21 @@ export default function ContasView({ addToast, onOpenColabModal }) {
     }));
   };
 
+  // ====== DOWNLOAD SCRIPTS & ATALHOS ======
+  const handleDownloadScript = (type) => {
+    window.open(`/api/contas/download-script?type=${type}`, '_blank');
+    addToast('📥 Download iniciado! Execute o arquivo no seu computador.', 'info');
+  };
+
   // ====== RUN PYTHON SCRIPT ======
   const triggerRunScript = async (scriptType) => {
+    // Se o usuário estiver acessando online (Vercel), redireciona diretamente para o modal de download
+    if (isOnline) {
+      setDownloadModal(true);
+      addToast('💡 Acesso Online: Baixe o script/atalho para executar no seu PC com 1 clique.', 'info');
+      return;
+    }
+
     const title = scriptType === 'contas_lojas'
       ? '🤖 Atualização de Valores das Contas (contas_lojas.py)'
       : '🤖 Download Automático dos Extratos (conta-pdf-download.py)';
@@ -138,6 +157,13 @@ export default function ContasView({ addToast, onOpenColabModal }) {
         addToast(`✅ Script ${data.script} finalizado!`, 'success');
         fetchContas();
       } else {
+        if (data.isCloudEnv) {
+          setScriptModal({ open: false, running: false, title: '', output: '' });
+          setDownloadModal(true);
+          addToast('💡 Ambiente na nuvem: Baixe o atalho .bat para rodar no seu PC.', 'info');
+          return;
+        }
+
         setScriptModal({
           open: true,
           running: false,
@@ -159,6 +185,11 @@ export default function ContasView({ addToast, onOpenColabModal }) {
 
   // ====== SYNC LOCAL FILES ======
   const triggerSyncLocal = async (tipo) => {
+    if (isOnline) {
+      setDownloadModal(true);
+      addToast('💡 Sincronização de pastas locais deve ser executada no seu computador.', 'info');
+      return;
+    }
     setSyncModal({ open: true, syncing: true, logs: ['⏳ Iniciando verificação das pastas locais e upload para o Supabase Storage...'] });
     try {
       const res = await fetch('/api/contas/sync-local', {
@@ -442,27 +473,39 @@ export default function ContasView({ addToast, onOpenColabModal }) {
               Execute os scripts de fechamento e sincronize os PDFs das contas e holerites.
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              className="btn btn-primary btn-sm"
+              style={{
+                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                boxShadow: '0 2px 10px rgba(59, 130, 246, 0.3)',
+                fontWeight: 600,
+              }}
+              onClick={() => setDownloadModal(true)}
+              title="Baixar scripts e atalhos para executar no computador com 1 clique"
+            >
+              📥 Sincronizar no PC (1 Clique)
+            </button>
             <button
               className="btn btn-secondary btn-sm"
               onClick={() => triggerRunScript('contas_lojas')}
               title="Executar script contas_lojas.py"
             >
-              🐍 1. Atualizar Valores (contas_lojas.py)
+              🐍 1. Atualizar Valores
             </button>
             <button
               className="btn btn-secondary btn-sm"
               onClick={() => triggerRunScript('conta_pdf_download')}
               title="Executar script conta-pdf-download.py"
             >
-              🐍 2. Baixar PDFs (conta-pdf-download.py)
+              🐍 2. Baixar PDFs
             </button>
             <button
-              className="btn btn-primary btn-sm"
+              className="btn btn-secondary btn-sm"
               onClick={() => triggerSyncLocal('todos')}
               title="Ler arquivos locais e subir para o Supabase"
             >
-              📥 Sincronizar PDFs Locais
+              📁 Enviar Pastas Locais
             </button>
             <button
               className="btn btn-danger btn-sm"
@@ -840,6 +883,158 @@ export default function ContasView({ addToast, onOpenColabModal }) {
             <div className="modal-footer">
               <button className="btn btn-secondary btn-sm" onClick={() => setClearModal({ open: false, clearing: false })}>
                 Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE DOWNLOAD E EXECUÇÃO LOCAL NO PC */}
+      {downloadModal && (
+        <div className="modal-backdrop">
+          <div className="modal-content" style={{ maxWidth: '680px' }}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ fontSize: '1.4rem' }}>💻</span>
+                <div>
+                  <h3 style={{ margin: 0 }}>Sincronização e Scripts para PC</h3>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    {isOnline ? '🌐 Modo Online (Vercel)' : '💻 Modo Local (Localhost)'} • Execute no Windows com 1 clique
+                  </p>
+                </div>
+              </div>
+              <button className="modal-close" onClick={() => setDownloadModal(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+              
+              <div style={{ background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.25)', borderRadius: '8px', padding: '1rem' }}>
+                <p style={{ fontSize: '0.88rem', margin: 0, color: 'var(--text-main)', lineHeight: 1.5 }}>
+                  ℹ️ <strong>Por que executar no computador?</strong> Os scripts precisam de acesso direto aos bancos de dados locais da farmácia (<code>191.167.1.80</code> e <code>srv-sete</code>) e ao Chrome Selenium. Ao rodar no PC, eles atualizam o <strong>Supabase</strong> na nuvem automaticamente.
+                </p>
+              </div>
+
+              {/* OPÇÕES DE DOWNLOAD 1-CLIQUE */}
+              <div>
+                <h4 style={{ fontSize: '0.95rem', marginBottom: '0.6rem', color: 'var(--text-main)' }}>
+                  🚀 1. Executáveis em Lote (.bat para Windows)
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.75rem' }}>
+                  
+                  {/* Card Tudo */}
+                  <div style={{ background: 'var(--bg-subtle, rgba(255,255,255,0.03))', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '0.9rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#60a5fa', marginBottom: '0.25rem' }}>
+                        ⚡ Rotina Completa (Tudo)
+                      </div>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+                        Baixa extratos via Chrome e sincroniza valores dos bancos no Supabase.
+                      </p>
+                    </div>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      style={{ marginTop: '0.75rem', width: '100%', justifyContent: 'center' }}
+                      onClick={() => handleDownloadScript('bat_tudo')}
+                    >
+                      📥 Baixar Executar_Tudo.bat
+                    </button>
+                  </div>
+
+                  {/* Card Atualizar Valores */}
+                  <div style={{ background: 'var(--bg-subtle, rgba(255,255,255,0.03))', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '0.9rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#4ade80', marginBottom: '0.25rem' }}>
+                        📊 Apenas Atualizar Valores
+                      </div>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+                        Consolida débitos das lojas 01 e 07 e grava no banco de dados.
+                      </p>
+                    </div>
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      style={{ marginTop: '0.75rem', width: '100%', justifyContent: 'center' }}
+                      onClick={() => handleDownloadScript('bat_contas')}
+                    >
+                      📥 Baixar Atualizar_Contas.bat
+                    </button>
+                  </div>
+
+                  {/* Card Download PDFs */}
+                  <div style={{ background: 'var(--bg-subtle, rgba(255,255,255,0.03))', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '0.9rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#fbbf24', marginBottom: '0.25rem' }}>
+                        📄 Apenas Baixar Extratos PDF
+                      </div>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+                        Abre o Selenium para baixar extratos do sistema de convênios.
+                      </p>
+                    </div>
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      style={{ marginTop: '0.75rem', width: '100%', justifyContent: 'center' }}
+                      onClick={() => handleDownloadScript('bat_download')}
+                    >
+                      📥 Baixar Baixar_Extratos.bat
+                    </button>
+                  </div>
+
+                  {/* Card Scripts Python Puros */}
+                  <div style={{ background: 'var(--bg-subtle, rgba(255,255,255,0.03))', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '0.9rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#c084fc', marginBottom: '0.25rem' }}>
+                        🐍 Scripts Python (.py)
+                      </div>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+                        Código fonte dos scripts para quem roda direto pelo terminal.
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.75rem' }}>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        style={{ flex: 1, justifyContent: 'center', fontSize: '0.75rem' }}
+                        onClick={() => handleDownloadScript('contas_lojas')}
+                      >
+                        contas_lojas.py
+                      </button>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        style={{ flex: 1, justifyContent: 'center', fontSize: '0.75rem' }}
+                        onClick={() => handleDownloadScript('conta_pdf_download')}
+                      >
+                        download_pdf.py
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* PASSO A PASSO */}
+              <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem' }}>
+                <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
+                  📋 Como utilizar:
+                </h4>
+                <ol style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                  <li>Baixe o arquivo <code>.bat</code> e deixe na pasta do projeto no seu PC.</li>
+                  <li>Dê <strong>2 cliques</strong> no arquivo <code>.bat</code> para executar a sincronização.</li>
+                  <li>Assim que o terminal fechar com sucesso, clique no botão <strong>Recarregar Dados</strong> abaixo!</li>
+                </ol>
+              </div>
+
+            </div>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => {
+                  fetchContas();
+                  addToast('🔄 Dados atualizados da nuvem!', 'success');
+                }}
+              >
+                🔄 Recarregar Dados da Tela
+              </button>
+              <button className="btn btn-primary btn-sm" onClick={() => setDownloadModal(false)}>
+                Concluído
               </button>
             </div>
           </div>

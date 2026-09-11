@@ -22,10 +22,16 @@ export async function POST(request) {
       exec(`python "${scriptPath}" --auto`, { env, cwd: process.cwd() }, (error, stdout, stderr) => {
         if (error) {
           console.error(`Erro ao executar script ${scriptFile}:`, error);
+          const isPythonMissing = error.message.includes('not found') || error.message.includes('não é reconhecido');
+          const customError = isPythonMissing
+            ? `Python não está disponível no servidor de hospedagem (Vercel). Os scripts acessam bancos locais da farmácia e o Chrome, portanto devem ser executados no seu computador. Clique no botão de download para baixar o executável (.bat).`
+            : `Erro ao executar ${scriptFile}: ${error.message}`;
+
           resolve(
             NextResponse.json({
               success: false,
-              error: `Erro ao executar ${scriptFile}: ${error.message}`,
+              isCloudEnv: isPythonMissing || !!process.env.VERCEL,
+              error: customError,
               output: (stdout || '') + '\n' + (stderr || ''),
             }, { status: 500 })
           );
@@ -44,3 +50,4 @@ export async function POST(request) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
+
