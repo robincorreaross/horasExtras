@@ -10,12 +10,25 @@ const LOJAS = [
   'Terceirizado'
 ];
 
+function parseValorConta(val) {
+  if (val === null || val === undefined || val === '') return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  const str = String(val).trim();
+  if (str.includes(',')) {
+    const cleaned = str.replace(/[^\d,-]/g, '').replace(/\./g, '').replace(',', '.');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  }
+  const cleaned = str.replace(/[^\d.-]/g, '');
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
+}
+
 function formatBRL(val) {
-  if (val === null || val === undefined || val === '') return 'R$ 0,00';
-  const num = typeof val === 'number' ? val : parseFloat(String(val).replace(',', '.'));
-  if (isNaN(num)) return 'R$ 0,00';
+  const num = parseValorConta(val);
   return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
+
 
 export default function ContasView({ addToast, onOpenColabModal }) {
   const [colaboradores, setColaboradores] = useState([]);
@@ -289,7 +302,7 @@ export default function ContasView({ addToast, onOpenColabModal }) {
 
     if (tipo === 'aviso_17') {
       const totalAtivos = targets.length;
-      targets = targets.filter(c => parseFloat(String(c.valorConta || 0).replace(',', '.')) > 0);
+      targets = targets.filter(c => parseValorConta(c.valorConta) > 0);
       const zerados = totalAtivos - targets.length;
 
       if (targets.length === 0) {
@@ -300,7 +313,8 @@ export default function ContasView({ addToast, onOpenColabModal }) {
       if (!confirm(`Confirma o disparo MANUAL de Aviso Dia 17 para ${targets.length} colaborador(es) com contas em aberto?\n(${zerados} colaborador(es) com conta zerada serão ignorados).`)) {
         return;
       }
-    } else if (tipo === 'fechamento_18') {
+    }
+ else if (tipo === 'fechamento_18') {
       const semPdf = targets.filter(c => !c.contaPDF);
       if (semPdf.length > 0) {
         if (!confirm(`Atenção: ${semPdf.length} colaborador(es) não possuem PDF do Extrato. O disparo continuará apenas para os que possuem PDF. Deseja prosseguir?`)) {
@@ -1121,7 +1135,7 @@ export default function ContasView({ addToast, onOpenColabModal }) {
                 </div>
               )}
 
-              {previewModal.tipo === 'aviso_17' && parseFloat(String(previewModal.emp.valorConta || 0).replace(',', '.')) <= 0 && (
+              {previewModal.tipo === 'aviso_17' && parseValorConta(previewModal.emp.valorConta) <= 0 && (
                 <div style={{ marginTop: '0.75rem', color: '#f59e0b', fontSize: '0.85rem', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '0.6rem 0.8rem', borderRadius: '6px' }}>
                   ℹ️ <strong>Conta Zerada:</strong> Este colaborador não possui débitos em aberto (R$ 0,00). O envio do Aviso de Fechamento está bloqueado para contas zeradas.
                 </div>
@@ -1137,7 +1151,7 @@ export default function ContasView({ addToast, onOpenColabModal }) {
               <button
                 className="btn btn-whatsapp btn-sm"
                 onClick={() => triggerSendSingle(previewModal.emp.id, previewModal.tipo)}
-                disabled={previewModal.tipo === 'aviso_17' && parseFloat(String(previewModal.emp.valorConta || 0).replace(',', '.')) <= 0}
+                disabled={previewModal.tipo === 'aviso_17' && parseValorConta(previewModal.emp.valorConta) <= 0}
               >
                 🚀 Confirmar Envio Manual
               </button>

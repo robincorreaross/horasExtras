@@ -2,13 +2,24 @@ import sql from '@/lib/db';
 import { checkConnection, sendTextMessage, sendMediaMessage } from '@/lib/evolution';
 import { NextResponse } from 'next/server';
 
-/**
- * Formata um valor numérico ou texto para a representação em moeda brasileira (R$ XX,XX)
- */
+function parseValorConta(val) {
+  if (val === null || val === undefined || val === '') return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  const str = String(val).trim();
+  // Se contiver vírgula, assume formato brasileiro (1.234,56 ou 150,00)
+  if (str.includes(',')) {
+    const cleaned = str.replace(/[^\d,-]/g, '').replace(/\./g, '').replace(',', '.');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  }
+  // Formato padrão (150.00 ou 150)
+  const cleaned = str.replace(/[^\d.-]/g, '');
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
+}
+
 function formatCurrency(val) {
-  if (val === null || val === undefined || val === '') return 'R$ 0,00';
-  const num = typeof val === 'number' ? val : parseFloat(String(val).replace(',', '.'));
-  if (isNaN(num)) return 'R$ 0,00';
+  const num = parseValorConta(val);
   return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
@@ -55,6 +66,7 @@ export async function POST(request) {
       );
     }
 
+    const numValor = parseValorConta(emp.valorConta);
     const valorFmt = formatCurrency(emp.valorConta);
     const primeiroNome = emp.nome ? emp.nome.trim().split(' ')[0] : 'Colaborador';
 
@@ -62,8 +74,7 @@ export async function POST(request) {
     let messageText = '';
 
     if (tipo === 'aviso_17') {
-      const numValor = parseFloat(String(emp.valorConta || 0).replace(',', '.'));
-      if (isNaN(numValor) || numValor <= 0) {
+      if (numValor <= 0) {
         return NextResponse.json(
           {
             success: false,
@@ -73,6 +84,7 @@ export async function POST(request) {
           { status: 400 }
         );
       }
+
 
       // Mensagem de Aviso de Fechamento da Conta (Sem PDF)
       messageText = `*🤖 Disparo Automático 🤖*\n\n` +
