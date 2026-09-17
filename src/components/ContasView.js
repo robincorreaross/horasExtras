@@ -57,8 +57,10 @@ export default function ContasView({ addToast, onOpenColabModal }) {
   const fetchContas = useCallback(async () => {
     setLoading(true);
     try {
-      const query = selectedLoja !== 'TODAS' ? `?loja=${encodeURIComponent(selectedLoja)}` : '';
-      const res = await fetch(`/api/funcionarios${query}`);
+      const sep = selectedLoja !== 'TODAS' ? `?loja=${encodeURIComponent(selectedLoja)}&` : '?';
+      const res = await fetch(`/api/funcionarios${sep}_t=${Date.now()}`, {
+        cache: 'no-store',
+      });
       const data = await res.json();
       if (Array.isArray(data)) {
         setColaboradores(data);

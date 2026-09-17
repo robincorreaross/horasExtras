@@ -94,7 +94,9 @@ export default function Dashboard() {
   const fetchFuncionarios = useCallback(async () => {
     try {
       const query = selectedLoja !== 'TODAS' ? `&loja=${encodeURIComponent(selectedLoja)}` : '';
-      const res = await fetch(`/api/funcionarios?month=${refMonth}&year=${refYear}${query}`);
+      const res = await fetch(`/api/funcionarios?month=${refMonth}&year=${refYear}${query}&_t=${Date.now()}`, {
+        cache: 'no-store',
+      });
       if (res.status === 401) { router.push('/login'); return; }
       const data = await res.json();
       if (Array.isArray(data)) {

@@ -136,25 +136,43 @@ def atualizar_supabase(df_final):
     cur = conn.cursor()
 
     # 1. Zera as contas de todo mundo no Supabase
-    cur.execute("""
-        UPDATE colaboradores
-        SET "valorConta" = 0;
-    """)
-    print("🧹 Todas as contas no Supabase foram zeradas com sucesso.")
+    cur.execute('UPDATE colaboradores SET "valorConta" = \'0\';')
+    print(f"🧹 Todas as contas no Supabase foram zeradas com sucesso ({cur.rowcount} colaboradores).")
 
     # 2. Atualiza os valores consolidados
+    atualizados = 0
     for row in df_final.itertuples():
-        cur.execute("""
-            UPDATE colaboradores
-            SET "valorConta" = %s
-            WHERE id_loja = %s;
-        """, (row.valor, row.codigo_cliente))
-        print(f"🔄 Atualizado funcionario ID={row.codigo_cliente} -> R$ {row.valor:.2f}")
-
+        val_str = str(round(float(row.valor), 2))
+        cod_int = int(row.codigo_cliente) if str(row.codigo_cliente).isdigit() else None
+        
+        # 1ª tentativa: pelo id_loja numérico
+        if cod_int is not None:
+            cur.execute("""
+                UPDATE colaboradores
+                SET "valorConta" = %s
+                WHERE id_loja = %s;
+            """, (val_str, cod_int))
+        
+        # 2ª tentativa: se não encontrou pelo id_loja, tenta pelo nome
+        if cur.rowcount == 0:
+            p_nome = str(row.funcionario).strip().split(' ')[0]
+            cur.execute("""
+                UPDATE colaboradores
+                SET "valorConta" = %s
+                WHERE LOWER(nome) LIKE LOWER(%s);
+            """, (val_str, f"%{p_nome}%"))
+            
+        if cur.rowcount > 0:
+            print(f"🔄 Atualizado: ID={row.codigo_cliente} | {row.funcionario} -> R$ {row.valor:.2f}")
+            atualizados += 1
+        else:
+            print(f"⚠️ Não encontrado no banco: ID={row.codigo_cliente} | {row.funcionario} (R$ {row.valor:.2f})")
 
     conn.commit()
     cur.close()
     conn.close()
+    print(f"\n📊 Total de colaboradores com valores atualizados no Supabase: {atualizados}/{len(df_final)}")
+
 
 # ==============================
 # 4. MONTAR MENSAGEM

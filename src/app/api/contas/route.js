@@ -1,6 +1,9 @@
 import sql from '@/lib/db';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // GET /api/contas - Listar todos os colaboradores da tabela unificada
 export async function GET(request) {
   try {
@@ -46,7 +49,13 @@ export async function GET(request) {
     }
 
     const rows = await query;
-    return NextResponse.json(rows);
+    return NextResponse.json(rows, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

@@ -1,6 +1,9 @@
 import sql from '@/lib/db';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // GET /api/funcionarios - Listar todos os colaboradores com cálculo de saldo de horas e dados de contas
 export async function GET(request) {
   try {
@@ -117,11 +120,18 @@ export async function GET(request) {
       }
     }
     
-    return NextResponse.json(funcionarios);
+    return NextResponse.json(funcionarios, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
 
 // POST /api/funcionarios - Adicionar colaborador unificado
 export async function POST(request) {
