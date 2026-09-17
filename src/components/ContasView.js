@@ -280,34 +280,46 @@ export default function ContasView({ addToast, onOpenColabModal }) {
 
   // ====== BULK SEND WHATSAPP ======
   const startBulkSend = async (tipo) => {
-    const targets = sortedContas.filter((c) => c.ativo && c.telefone);
+    let targets = sortedContas.filter((c) => c.ativo && c.telefone);
 
     if (targets.length === 0) {
       addToast('Nenhum colaborador ativo com telefone cadastrado para o envio', 'error');
       return;
     }
 
-    if (tipo === 'fechamento_18') {
+    if (tipo === 'aviso_17') {
+      const totalAtivos = targets.length;
+      targets = targets.filter(c => parseFloat(String(c.valorConta || 0).replace(',', '.')) > 0);
+      const zerados = totalAtivos - targets.length;
+
+      if (targets.length === 0) {
+        addToast('Nenhum colaborador com saldo devedor/conta em aberto para enviar o Aviso Dia 17.', 'info');
+        return;
+      }
+
+      if (!confirm(`Confirma o disparo MANUAL de Aviso Dia 17 para ${targets.length} colaborador(es) com contas em aberto?\n(${zerados} colaborador(es) com conta zerada serão ignorados).`)) {
+        return;
+      }
+    } else if (tipo === 'fechamento_18') {
       const semPdf = targets.filter(c => !c.contaPDF);
       if (semPdf.length > 0) {
         if (!confirm(`Atenção: ${semPdf.length} colaborador(es) não possuem PDF do Extrato. O disparo continuará apenas para os que possuem PDF. Deseja prosseguir?`)) {
           return;
         }
       }
-    }
-
-    if (tipo === 'holerite') {
+      if (!confirm(`Confirma o disparo MANUAL em massa de Extrato com PDF (Dia 18) para ${targets.length} colaborador(es)?`)) {
+        return;
+      }
+    } else if (tipo === 'holerite') {
       const semHolerite = targets.filter(c => !c.holeritePDF);
       if (semHolerite.length > 0) {
         if (!confirm(`Atenção: ${semHolerite.length} colaborador(es) não possuem PDF de Holerite. Deseja prosseguir mesmo assim?`)) {
           return;
         }
       }
-    }
-
-    const desc = tipo === 'aviso_17' ? 'Aviso Dia 17 (Sem PDF)' : tipo === 'fechamento_18' ? 'Extrato com PDF (Dia 18)' : 'Holerite em PDF';
-    if (!confirm(`Confirma o disparo MANUAL em massa de ${desc} para ${targets.length} colaborador(es)?`)) {
-      return;
+      if (!confirm(`Confirma o disparo MANUAL em massa de Holerite em PDF para ${targets.length} colaborador(es)?`)) {
+        return;
+      }
     }
 
     setBulkState({
@@ -1108,6 +1120,12 @@ export default function ContasView({ addToast, onOpenColabModal }) {
                   ⚠️ Atenção: Este colaborador não possui o PDF do Extrato. Faça o upload antes de enviar.
                 </div>
               )}
+
+              {previewModal.tipo === 'aviso_17' && parseFloat(String(previewModal.emp.valorConta || 0).replace(',', '.')) <= 0 && (
+                <div style={{ marginTop: '0.75rem', color: '#f59e0b', fontSize: '0.85rem', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '0.6rem 0.8rem', borderRadius: '6px' }}>
+                  ℹ️ <strong>Conta Zerada:</strong> Este colaborador não possui débitos em aberto (R$ 0,00). O envio do Aviso de Fechamento está bloqueado para contas zeradas.
+                </div>
+              )}
             </div>
             <div className="modal-footer">
               <button
@@ -1119,6 +1137,7 @@ export default function ContasView({ addToast, onOpenColabModal }) {
               <button
                 className="btn btn-whatsapp btn-sm"
                 onClick={() => triggerSendSingle(previewModal.emp.id, previewModal.tipo)}
+                disabled={previewModal.tipo === 'aviso_17' && parseFloat(String(previewModal.emp.valorConta || 0).replace(',', '.')) <= 0}
               >
                 🚀 Confirmar Envio Manual
               </button>

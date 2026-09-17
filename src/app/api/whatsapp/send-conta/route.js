@@ -62,6 +62,18 @@ export async function POST(request) {
     let messageText = '';
 
     if (tipo === 'aviso_17') {
+      const numValor = parseFloat(String(emp.valorConta || 0).replace(',', '.'));
+      if (isNaN(numValor) || numValor <= 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            skipped: true,
+            error: `Colaborador(a) ${emp.nome} possui conta zerada (${valorFmt}). O aviso de fechamento não foi enviado.`,
+          },
+          { status: 400 }
+        );
+      }
+
       // Mensagem de Aviso de Fechamento da Conta (Sem PDF)
       messageText = `*🤖 Disparo Automático 🤖*\n\n` +
         `*🌞 Bom dia ${primeiroNome}! ☕✨*\n\n` +
@@ -72,6 +84,7 @@ export async function POST(request) {
         `*Obrigado.*`;
 
       sendResult = await sendTextMessage(emp.telefone, messageText);
+
 
     } else if (tipo === 'fechamento_18') {
       // Mensagem de Envio Final com Extrato PDF
