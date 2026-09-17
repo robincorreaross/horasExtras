@@ -313,15 +313,27 @@ export default function ContasView({ addToast, onOpenColabModal }) {
       if (!confirm(`Confirma o disparo MANUAL de Aviso Dia 17 para ${targets.length} colaborador(es) com contas em aberto?\n(${zerados} colaborador(es) com conta zerada serão ignorados).`)) {
         return;
       }
-    }
- else if (tipo === 'fechamento_18') {
-      const semPdf = targets.filter(c => !c.contaPDF);
-      if (semPdf.length > 0) {
-        if (!confirm(`Atenção: ${semPdf.length} colaborador(es) não possuem PDF do Extrato. O disparo continuará apenas para os que possuem PDF. Deseja prosseguir?`)) {
-          return;
-        }
+    } else if (tipo === 'fechamento_18') {
+      const comPdf = targets.filter(c => !!c.contaPDF);
+      const zeradosSemPdf = targets.filter(c => !c.contaPDF && parseValorConta(c.valorConta) <= 0).length;
+      const comSaldoSemPdf = targets.filter(c => !c.contaPDF && parseValorConta(c.valorConta) > 0).length;
+
+      targets = comPdf;
+
+      if (targets.length === 0) {
+        addToast('Nenhum colaborador com PDF de Extrato anexado para realizar o disparo do Dia 18.', 'info');
+        return;
       }
-      if (!confirm(`Confirma o disparo MANUAL em massa de Extrato com PDF (Dia 18) para ${targets.length} colaborador(es)?`)) {
+
+      let confirmMsg = `Confirma o disparo MANUAL de Extrato com PDF (Dia 18) para ${targets.length} colaborador(es) com PDF anexado?`;
+      const ignorados = [];
+      if (zeradosSemPdf > 0) ignorados.push(`${zeradosSemPdf} zerado(s) sem PDF`);
+      if (comSaldoSemPdf > 0) ignorados.push(`${comSaldoSemPdf} com saldo sem PDF`);
+      if (ignorados.length > 0) {
+        confirmMsg += `\n(${ignorados.join(' e ')} serão ignorados).`;
+      }
+
+      if (!confirm(confirmMsg)) {
         return;
       }
     } else if (tipo === 'holerite') {
@@ -1130,8 +1142,22 @@ export default function ContasView({ addToast, onOpenColabModal }) {
               </div>
 
               {previewModal.tipo === 'fechamento_18' && !previewModal.emp.contaPDF && (
-                <div style={{ marginTop: '0.75rem', color: 'var(--danger)', fontSize: '0.85rem' }}>
-                  ⚠️ Atenção: Este colaborador não possui o PDF do Extrato. Faça o upload antes de enviar.
+                <div style={{ marginTop: '0.75rem', color: parseValorConta(previewModal.emp.valorConta) <= 0 ? '#f59e0b' : 'var(--danger)', fontSize: '0.85rem', background: parseValorConta(previewModal.emp.valorConta) <= 0 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(239, 68, 68, 0.1)', border: '1px solid currentColor', padding: '0.6rem 0.8rem', borderRadius: '6px' }}>
+                  {parseValorConta(previewModal.emp.valorConta) <= 0
+                    ? 'ℹ️ Conta Zerada sem Extrato: Este colaborador possui conta zerada (R$ 0,00) e não tem PDF de extrato anexado. O envio está bloqueado.'
+                    : '⚠️ Atenção: Este colaborador não possui o PDF do Extrato anexado. Faça o upload antes de enviar.'}
+                </div>
+              )}
+
+              {previewModal.tipo === 'fechamento_18' && !!previewModal.emp.contaPDF && parseValorConta(previewModal.emp.valorConta) <= 0 && (
+                <div style={{ marginTop: '0.75rem', color: '#10b981', fontSize: '0.85rem', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '0.6rem 0.8rem', borderRadius: '6px' }}>
+                  📄 <strong>Extrato Anexado:</strong> O colaborador está com valor zerado (R$ 0,00), mas possui o extrato em PDF anexado. O documento será enviado normalmente com a mensagem.
+                </div>
+              )}
+
+              {previewModal.tipo === 'holerite' && !previewModal.emp.holeritePDF && (
+                <div style={{ marginTop: '0.75rem', color: 'var(--danger)', fontSize: '0.85rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid currentColor', padding: '0.6rem 0.8rem', borderRadius: '6px' }}>
+                  ⚠️ Atenção: Este colaborador não possui o PDF do Holerite anexado. Faça o upload antes de enviar.
                 </div>
               )}
 
@@ -1151,7 +1177,11 @@ export default function ContasView({ addToast, onOpenColabModal }) {
               <button
                 className="btn btn-whatsapp btn-sm"
                 onClick={() => triggerSendSingle(previewModal.emp.id, previewModal.tipo)}
-                disabled={previewModal.tipo === 'aviso_17' && parseValorConta(previewModal.emp.valorConta) <= 0}
+                disabled={
+                  (previewModal.tipo === 'aviso_17' && parseValorConta(previewModal.emp.valorConta) <= 0) ||
+                  (previewModal.tipo === 'fechamento_18' && !previewModal.emp.contaPDF) ||
+                  (previewModal.tipo === 'holerite' && !previewModal.emp.holeritePDF)
+                }
               >
                 🚀 Confirmar Envio Manual
               </button>

@@ -101,6 +101,16 @@ export async function POST(request) {
     } else if (tipo === 'fechamento_18') {
       // Mensagem de Envio Final com Extrato PDF
       if (!emp.contaPDF) {
+        if (numValor <= 0) {
+          return NextResponse.json(
+            {
+              success: false,
+              skipped: true,
+              error: `Colaborador(a) ${emp.nome} possui conta zerada (${valorFmt}) e não tem PDF de extrato anexado. Mensagem não enviada.`,
+            },
+            { status: 400 }
+          );
+        }
         return NextResponse.json(
           { success: false, error: `O PDF do extrato de ${emp.nome} ainda não foi carregado.` },
           { status: 400 }
