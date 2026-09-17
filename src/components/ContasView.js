@@ -89,6 +89,15 @@ export default function ContasView({ addToast, onOpenColabModal }) {
 
   useEffect(() => {
     fetchContas();
+
+    const handleFocus = () => {
+      fetchContas();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [fetchContas]);
 
   // ====== FILTER & SORT ======
@@ -1099,7 +1108,13 @@ export default function ContasView({ addToast, onOpenColabModal }) {
               >
                 🔄 Recarregar Dados da Tela
               </button>
-              <button className="btn btn-primary btn-sm" onClick={() => setDownloadModal(false)}>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => {
+                  fetchContas();
+                  setDownloadModal(false);
+                }}
+              >
                 Concluído
               </button>
             </div>
