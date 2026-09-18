@@ -24,8 +24,16 @@ DB_SUPABASE = {
 SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmcGdxcWZxb3hmendpZ250Y3VhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTcwMjc4MywiZXhwIjoyMDY3Mjc4NzgzfQ.j2OeMLpvSeRnpoBq7ygDFAJpkS2oWMxOIcorQ2IwCoY"
 SUPABASE_PROJETO_URL = "https://vfpgqqfqoxfzwigntcua.supabase.co"
 
-DIR_CONTAS = r"D:\work-Ross\Administrativo\Docs Colaboradores\enviarExtrato\extrato_contas"
-DIR_HOLERITES = r"D:\work-Ross\Administrativo\Docs Colaboradores\enviarExtrato\holerites"
+DIRS_CONTAS = [
+    r"D:\work-Ross\Administrativo\Docs Colaboradores\enviarExtrato\extrato_contas",
+    r"D:\work-projetos_ross\scripts_diversos\download-contas\downloads_clientes",
+    r"D:\work-Ross\Administrativo\Docs Colaboradores\enviarExtrato"
+]
+
+DIRS_HOLERITES = [
+    r"D:\work-Ross\Administrativo\Docs Colaboradores\enviarExtrato\holerites",
+    r"D:\work-Ross\Administrativo\Docs Colaboradores\holerites"
+]
 
 def find_matching_employee(pdf_name_clean, employees):
     target = pdf_name_clean.lower().strip()
@@ -64,17 +72,15 @@ def find_matching_employee(pdf_name_clean, employees):
 
     return None
 
-def upload_folder(folder_path, bucket_name, field_name, employees, conn):
+def upload_folder(folder_path, bucket_name, field_name, employees, conn, uploaded_emp_ids):
     if not os.path.exists(folder_path):
-        print(f"⚠️ Pasta não encontrada: {folder_path}")
         return 0
 
     files = [f for f in os.listdir(folder_path) if f.lower().endswith('.pdf')]
     if not files:
-        print(f"📭 Nenhum arquivo PDF encontrado em {folder_path}")
         return 0
 
-    print(f"📁 Encontrados {len(files)} PDF(s) em {folder_path} para o bucket '{bucket_name}'.")
+    print(f"📁 Lendo {len(files)} PDF(s) da pasta: {folder_path}")
 
     headers = {
         "Authorization": f"Bearer {SUPABASE_API_KEY}",
@@ -91,7 +97,10 @@ def upload_folder(folder_path, bucket_name, field_name, employees, conn):
         emp = find_matching_employee(pdf_name_clean, employees)
 
         if not emp:
-            print(f"⚠️ {file}: Nenhum colaborador correspondente no banco.")
+            continue
+
+        # Se este colaborador já teve seu PDF atualizado nesta execução por uma pasta prioritária, ignora
+        if emp['id'] in uploaded_emp_ids:
             continue
 
         file_path = os.path.join(folder_path, file)
@@ -118,6 +127,7 @@ def upload_folder(folder_path, bucket_name, field_name, employees, conn):
                 cur.execute(query, (public_url, emp['id']))
                 conn.commit()
                 print(f"✅ {file} -> {emp['nome']} ({public_url})")
+                uploaded_emp_ids.add(emp['id'])
                 success += 1
             else:
                 print(f"❌ Erro ao enviar {file}: {res.status_code} - {res.text}")
@@ -144,14 +154,20 @@ def main():
 
     # 1. Extratos de Contas
     print("--- 1. EXTRATOS DE CONTAS ---")
-    c_ok = upload_folder(DIR_CONTAS, "conta-pdf", "contaPDF", employees, conn)
+    c_ok = 0
+    uploaded_contas = set()
+    for dir_c in DIRS_CONTAS:
+        c_ok += upload_folder(dir_c, "conta-pdf", "contaPDF", employees, conn, uploaded_contas)
 
     # 2. Holerites
     print("\n--- 2. HOLERITES ---")
-    h_ok = upload_folder(DIR_HOLERITES, "holerites", "holeritePDF", employees, conn)
+    h_ok = 0
+    uploaded_holerites = set()
+    for dir_h in DIRS_HOLERITES:
+        h_ok += upload_folder(dir_h, "holerites", "holeritePDF", employees, conn, uploaded_holerites)
 
     conn.close()
-    print(f"\n📈 Finalizado: {c_ok} extratos de contas e {h_ok} holerites enviados com sucesso!")
+    print(f"\n📈 Finalizado: {c_ok} extratos de contas e {h_ok} holerites enviados e vinculados no Supabase!")
 
 if __name__ == "__main__":
     main()

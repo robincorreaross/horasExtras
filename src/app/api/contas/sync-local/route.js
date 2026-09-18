@@ -15,9 +15,16 @@ function getSupabaseClient() {
   });
 }
 
+const DIRS_CONTAS = [
+  `D:\\work-Ross\\Administrativo\\Docs Colaboradores\\enviarExtrato\\extrato_contas`,
+  `D:\\work-projetos_ross\\scripts_diversos\\download-contas\\downloads_clientes`,
+  `D:\\work-Ross\\Administrativo\\Docs Colaboradores\\enviarExtrato`
+];
 
-const DIR_CONTAS = `D:\\work-Ross\\Administrativo\\Docs Colaboradores\\enviarExtrato\\extrato_contas`;
-const DIR_HOLERITES = `D:\\work-Ross\\Administrativo\\Docs Colaboradores\\enviarExtrato\\holerites`;
+const DIRS_HOLERITES = [
+  `D:\\work-Ross\\Administrativo\\Docs Colaboradores\\enviarExtrato\\holerites`,
+  `D:\\work-Ross\\Administrativo\\Docs Colaboradores\\holerites`
+];
 
 /**
  * Tenta encontrar o colaborador correspondente ao nome do arquivo PDF.
@@ -64,36 +71,44 @@ function findMatchingEmployee(pdfNameClean, employees) {
   return null;
 }
 
+// POST /api/contas/sync-local - Lê os PDFs locais e envia para o Supabase Storage
 export async function POST(request) {
   try {
     const supabase = getSupabaseClient();
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
     const tipoSync = body.tipo || 'todos'; // 'contas', 'holerites', 'todos'
 
-    // Buscar todos os colaboradores da tabela unificada
-    const employees = await sql`SELECT id, id_loja, nome FROM colaboradores`;
+    // 1. Buscar todos os colaboradores para fazer a correlação de IDs e nomes
+    const employees = await sql`
+      SELECT id, id_loja, nome, loja
+      FROM colaboradores
+    `;
 
     const logs = [];
     let contasSuccess = 0;
     let holeritesSuccess = 0;
+    const processedContas = new Set();
+    const processedHolerites = new Set();
 
     // --- 1. PROCESSAR EXTRATOS DE CONTAS ---
     if (tipoSync === 'contas' || tipoSync === 'todos') {
-      if (fs.existsSync(DIR_CONTAS)) {
-        const files = fs.readdirSync(DIR_CONTAS).filter(f => f.toLowerCase().endsWith('.pdf'));
-        logs.push(`📁 Encontrados ${files.length} PDF(s) na pasta de Extratos de Contas.`);
+      for (const dirPath of DIRS_CONTAS) {
+        if (!fs.existsSync(dirPath)) continue;
+        const files = fs.readdirSync(dirPath).filter(f => f.toLowerCase().endsWith('.pdf'));
+        if (files.length === 0) continue;
+
+        logs.push(`📁 Lendo ${files.length} PDF(s) em: ${dirPath}`);
 
         for (const file of files) {
-          const filePath = path.join(DIR_CONTAS, file);
           const pdfNameClean = path.parse(file).name;
           const matchedEmp = findMatchingEmployee(pdfNameClean, employees);
 
-          if (!matchedEmp) {
-            logs.push(`⚠️ ${file}: Nenhum colaborador correspondente encontrado no banco.`);
+          if (!matchedEmp || processedContas.has(matchedEmp.id)) {
             continue;
           }
 
           try {
+            const filePath = path.join(dirPath, file);
             const buffer = fs.readFileSync(filePath);
             const refCode = matchedEmp.id_loja || matchedEmp.nome.trim().split(' ')[0];
             const filenameInBucket = `${matchedEmp.nome.trim().split(' ')[0]}_${refCode}.pdf`;
@@ -122,34 +137,35 @@ export async function POST(request) {
               WHERE id = ${matchedEmp.id}
             `;
 
+            processedContas.add(matchedEmp.id);
             contasSuccess++;
             logs.push(`✅ Extrato de ${matchedEmp.nome} atualizado!`);
           } catch (fileErr) {
             logs.push(`❌ Erro ao processar arquivo ${file}: ${fileErr.message}`);
           }
         }
-      } else {
-        logs.push(`⚠️ Pasta de contas não encontrada: ${DIR_CONTAS}`);
       }
     }
 
     // --- 2. PROCESSAR HOLERITES ---
     if (tipoSync === 'holerites' || tipoSync === 'todos') {
-      if (fs.existsSync(DIR_HOLERITES)) {
-        const files = fs.readdirSync(DIR_HOLERITES).filter(f => f.toLowerCase().endsWith('.pdf'));
-        logs.push(`📁 Encontrados ${files.length} PDF(s) na pasta de Holerites.`);
+      for (const dirPath of DIRS_HOLERITES) {
+        if (!fs.existsSync(dirPath)) continue;
+        const files = fs.readdirSync(dirPath).filter(f => f.toLowerCase().endsWith('.pdf'));
+        if (files.length === 0) continue;
+
+        logs.push(`📁 Lendo ${files.length} PDF(s) em: ${dirPath}`);
 
         for (const file of files) {
-          const filePath = path.join(DIR_HOLERITES, file);
           const pdfNameClean = path.parse(file).name;
           const matchedEmp = findMatchingEmployee(pdfNameClean, employees);
 
-          if (!matchedEmp) {
-            logs.push(`⚠️ ${file}: Nenhum colaborador correspondente encontrado no banco.`);
+          if (!matchedEmp || processedHolerites.has(matchedEmp.id)) {
             continue;
           }
 
           try {
+            const filePath = path.join(dirPath, file);
             const buffer = fs.readFileSync(filePath);
             const refCode = matchedEmp.id_loja || matchedEmp.nome.trim().split(' ')[0];
             const filenameInBucket = `Holerite_${matchedEmp.nome.trim().split(' ')[0]}_${refCode}.pdf`;
@@ -178,14 +194,13 @@ export async function POST(request) {
               WHERE id = ${matchedEmp.id}
             `;
 
+            processedHolerites.add(matchedEmp.id);
             holeritesSuccess++;
             logs.push(`✅ Holerite de ${matchedEmp.nome} atualizado!`);
           } catch (fileErr) {
             logs.push(`❌ Erro ao processar holerite ${file}: ${fileErr.message}`);
           }
         }
-      } else {
-        logs.push(`⚠️ Pasta de holerites não encontrada: ${DIR_HOLERITES}`);
       }
     }
 
