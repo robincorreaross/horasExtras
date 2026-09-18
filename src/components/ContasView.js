@@ -89,15 +89,6 @@ export default function ContasView({ addToast, onOpenColabModal }) {
 
   useEffect(() => {
     fetchContas();
-
-    const handleFocus = () => {
-      fetchContas();
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
   }, [fetchContas]);
 
   // ====== FILTER & SORT ======
