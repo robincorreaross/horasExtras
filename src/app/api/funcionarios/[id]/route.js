@@ -58,8 +58,8 @@ export async function PUT(request, { params }) {
     if (ativo !== undefined) fieldsToUpdate.ativo = Boolean(ativo);
     if (saldo_inicial !== undefined) fieldsToUpdate.saldo_inicial = isNaN(parseFloat(saldo_inicial)) ? 0 : parseFloat(saldo_inicial);
     if (valorConta !== undefined) fieldsToUpdate['valorConta'] = String(valorConta);
-    if (contaPDF !== undefined) fieldsToUpdate['contaPDF'] = contaPDF;
-    if (holeritePDF !== undefined) fieldsToUpdate['holeritePDF'] = holeritePDF;
+    if (contaPDF !== undefined) fieldsToUpdate['contaPDF'] = contaPDF ? String(contaPDF) : null;
+    if (holeritePDF !== undefined) fieldsToUpdate['holeritePDF'] = holeritePDF ? String(holeritePDF) : null;
 
     const result = await sql`
       UPDATE colaboradores 

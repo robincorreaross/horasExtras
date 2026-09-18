@@ -40,6 +40,7 @@ export default function ContasView({ addToast, onOpenColabModal }) {
   // Modal States
   const [previewModal, setPreviewModal] = useState({ open: false, emp: null, tipo: 'aviso_17' });
   const [uploadModal, setUploadModal] = useState({ open: false, emp: null, tipoDoc: 'conta' });
+  const [editValorModal, setEditValorModal] = useState({ open: false, emp: null, valor: '', saving: false });
   const [uploadFile, setUploadFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
@@ -264,6 +265,72 @@ export default function ContasView({ addToast, onOpenColabModal }) {
     } catch (err) {
       addToast('Erro ao realizar limpeza dos PDFs', 'error');
       setClearModal({ open: false, clearing: false });
+    }
+  };
+
+  // ====== EDITAR VALOR DA CONTA MANUALMENTE ======
+  const handleOpenEditValor = (emp) => {
+    setEditValorModal({
+      open: true,
+      emp,
+      valor: String(emp.valorConta || '0'),
+      saving: false,
+    });
+  };
+
+  const handleSaveValorConta = async (e) => {
+    if (e) e.preventDefault();
+    if (!editValorModal.emp) return;
+
+    setEditValorModal((prev) => ({ ...prev, saving: true }));
+    try {
+      const num = parseValorConta(editValorModal.valor);
+      const res = await fetch(`/api/funcionarios/${editValorModal.emp.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ valorConta: String(num) }),
+      });
+
+      const data = await res.json();
+      if (res.ok && !data.error) {
+        addToast(`✅ Valor da conta de ${editValorModal.emp.nome} atualizado para ${formatBRL(num)}!`, 'success');
+        setEditValorModal({ open: false, emp: null, valor: '', saving: false });
+        fetchContas();
+      } else {
+        addToast(`❌ ${data.error || 'Erro ao atualizar valor'}`, 'error');
+        setEditValorModal((prev) => ({ ...prev, saving: false }));
+      }
+    } catch (err) {
+      addToast('Erro ao atualizar valor da conta', 'error');
+      setEditValorModal((prev) => ({ ...prev, saving: false }));
+    }
+  };
+
+  // ====== EXCLUIR PDF MANUALMENTE ======
+  const handleDeletePdf = async (emp, tipoDoc) => {
+    const docDesc = tipoDoc === 'conta' ? 'Extrato da Conta' : 'Holerite';
+    if (!confirm(`Tem certeza que deseja excluir o PDF do ${docDesc} de ${emp.nome}?`)) {
+      return;
+    }
+
+    try {
+      addToast(`Excluindo PDF do ${docDesc}...`, 'info');
+      const payload = tipoDoc === 'conta' ? { contaPDF: null } : { holeritePDF: null };
+      const res = await fetch(`/api/funcionarios/${emp.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (res.ok && !data.error) {
+        addToast(`✅ PDF do ${docDesc} de ${emp.nome} removido com sucesso!`, 'success');
+        fetchContas();
+      } else {
+        addToast(`❌ ${data.error || 'Erro ao remover PDF'}`, 'error');
+      }
+    } catch (err) {
+      addToast('Erro ao remover PDF', 'error');
     }
   };
 
@@ -703,8 +770,20 @@ export default function ContasView({ addToast, onOpenColabModal }) {
                         {emp.loja || 'Sem Loja'}
                       </span>
                     </td>
-                    <td style={{ textAlign: 'right', fontWeight: 800, fontSize: '0.95rem', color: parseFloat(emp.valorConta || 0) > 0 ? 'var(--cyan)' : 'var(--text-muted)' }}>
-                      {formatBRL(emp.valorConta)}
+                    <td style={{ textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                        <span style={{ fontWeight: 800, fontSize: '0.95rem', color: parseValorConta(emp.valorConta) > 0 ? 'var(--cyan)' : 'var(--text-muted)' }}>
+                          {formatBRL(emp.valorConta)}
+                        </span>
+                        <button
+                          className="btn-icon"
+                          title="Alterar valor manualmente"
+                          style={{ opacity: 0.8, cursor: 'pointer', fontSize: '0.8rem', padding: '2px 4px' }}
+                          onClick={() => handleOpenEditValor(emp)}
+                        >
+                          ✏️
+                        </button>
+                      </div>
                     </td>
                     <td style={{ textAlign: 'center' }}>
                       {emp.contaPDF ? (
@@ -724,6 +803,14 @@ export default function ContasView({ addToast, onOpenColabModal }) {
                             onClick={() => setUploadModal({ open: true, emp, tipoDoc: 'conta' })}
                           >
                             ⬆️
+                          </button>
+                          <button
+                            className="btn-icon btn-icon-danger"
+                            title="Excluir PDF da Conta"
+                            style={{ color: 'var(--danger)', opacity: 0.85 }}
+                            onClick={() => handleDeletePdf(emp, 'conta')}
+                          >
+                            🗑️
                           </button>
                         </div>
                       ) : (
@@ -753,6 +840,14 @@ export default function ContasView({ addToast, onOpenColabModal }) {
                             onClick={() => setUploadModal({ open: true, emp, tipoDoc: 'holerite' })}
                           >
                             ⬆️
+                          </button>
+                          <button
+                            className="btn-icon btn-icon-danger"
+                            title="Excluir Holerite PDF"
+                            style={{ color: 'var(--danger)', opacity: 0.85 }}
+                            onClick={() => handleDeletePdf(emp, 'holerite')}
+                          >
+                            🗑️
                           </button>
                         </div>
                       ) : (
@@ -1239,6 +1334,94 @@ export default function ContasView({ addToast, onOpenColabModal }) {
                 </button>
                 <button type="submit" className="btn btn-primary btn-sm" disabled={uploading}>
                   {uploading ? <><span className="spinner"></span> Enviando...</> : 'Enviar PDF'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE EDIÇÃO MANUAL DO VALOR DA CONTA */}
+      {editValorModal.open && editValorModal.emp && (
+        <div className="modal-backdrop">
+          <div className="modal-content" style={{ maxWidth: '440px' }}>
+            <div className="modal-header">
+              <h3>✏️ Alterar Valor da Conta</h3>
+              <button
+                className="modal-close"
+                onClick={() => setEditValorModal({ open: false, emp: null, valor: '', saving: false })}
+                disabled={editValorModal.saving}
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleSaveValorConta}>
+              <div className="modal-body">
+                <div style={{ marginBottom: '1.25rem', fontSize: '0.9rem', background: 'var(--bg-card-hover)', padding: '0.75rem', borderRadius: '8px' }}>
+                  <div><strong>Colaborador:</strong> {editValorModal.emp.nome}</div>
+                  <div style={{ marginTop: '0.2rem' }}><strong>Loja:</strong> {editValorModal.emp.loja || 'Sem Loja'}</div>
+                  <div style={{ marginTop: '0.35rem' }}>
+                    <strong>Valor Atual:</strong>{' '}
+                    <span className="badge badge-neutral" style={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                      {formatBRL(editValorModal.emp.valorConta)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, fontSize: '0.85rem' }}>
+                    Novo Valor (R$):
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Ex: 150.00 ou 150,00"
+                    value={editValorModal.valor}
+                    onChange={(e) => setEditValorModal((prev) => ({ ...prev, valor: e.target.value }))}
+                    autoFocus
+                    required
+                  />
+                  <small style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.35rem', display: 'block' }}>
+                    Prévia formatada: <strong style={{ color: 'var(--cyan)' }}>{formatBRL(editValorModal.valor)}</strong>
+                  </small>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-xs"
+                    onClick={() => setEditValorModal((prev) => ({ ...prev, valor: '0' }))}
+                  >
+                    🧹 Zerar Conta (R$ 0,00)
+                  </button>
+                  {editValorModal.emp.contaPDF && (
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-xs"
+                      onClick={() => {
+                        handleDeletePdf(editValorModal.emp, 'conta');
+                      }}
+                    >
+                      🗑️ Excluir PDF Anexado
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setEditValorModal({ open: false, emp: null, valor: '', saving: false })}
+                  disabled={editValorModal.saving}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-sm"
+                  disabled={editValorModal.saving}
+                >
+                  {editValorModal.saving ? <><span className="spinner"></span> Salvando...</> : '💾 Salvar Valor'}
                 </button>
               </div>
             </form>
